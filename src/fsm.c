@@ -8,8 +8,8 @@
 
 #include "fsm.h"
 
-#define ENTER_CRITICAL { asm("CPSID IF"); }
-#define EXIT_CRITICAL  { asm("CPSIE IF"); }
+#define ENTER_CRITICAL {  }
+#define EXIT_CRITICAL  {  }
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
 {
