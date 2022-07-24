@@ -8,8 +8,16 @@
 
 #include "fsm.h"
 
-#define ENTER_CRITICAL {  }
-#define EXIT_CRITICAL  {  }
+#ifdef TARGET_ARM
+    #define ENTER_CRITICAL { asm("CPSID IF"); }
+    #define EXIT_CRITICAL  { asm("CPSIE IF"); }
+#elif TARGET_ESP32
+    #define ENTER_CRITICAL {  }
+    #define EXIT_CRITICAL  {  }
+#else
+    #define ENTER_CRITICAL {  }
+    #define EXIT_CRITICAL  {  }
+#endif
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
 {
