@@ -19,6 +19,14 @@
     #define EXIT_CRITICAL  {  }
 #endif
 
+struct fsm_events_t
+{
+    uint8_t read_index;
+    uint8_t write_index;
+    uint8_t fill;
+    signal event[ BUFFER_SIZE ];
+};
+
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
 {
     fsm_event->read_index = 0U;
