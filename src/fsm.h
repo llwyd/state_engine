@@ -57,7 +57,6 @@ struct hsm_t
     hsm_t * super_state;
 };
 
-
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 
 /* Event Dispatcher */
@@ -70,3 +69,4 @@ extern signal FSM_GetLatestEvent( fsm_events_t * fsm_event );
 extern bool FSM_EventsAvailable( fsm_events_t * fsm_event );
 
 #endif /* _FSM_H_ */
+
