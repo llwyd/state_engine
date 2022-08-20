@@ -15,9 +15,12 @@
     #define ENTER_CRITICAL {  }
     #define EXIT_CRITICAL  {  }
 #else
+    #include <assert.h>
     #define ENTER_CRITICAL {  }
     #define EXIT_CRITICAL  {  }
 #endif
+
+#define MAX_NESTED_STATES ( 3 )
 
 struct fsm_events_t
 {
@@ -36,8 +39,51 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
     FSM_Dispatch( state, signal_Enter );
 }
 
+extern fsm_status_t FSM_Transition( fsm_t * state, state_func f )
+{
+    assert( state->state != f );
+    state->state = f;
+    return fsm_Transition;
+}
+
+extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f )
+{
+    assert( state->state != f );
+    state->state = f;
+    return fsm_SuperTransition;
+}
+
 extern void FSM_Dispatch( fsm_t * state, signal s )
 {
+    /* These hold the history up and down the state tree */
+    state_func path_up[ MAX_NESTED_STATES ];
+    state_func path_down[ MAX_NESTED_STATES ];
+
+    /* Always guaranteed to execute the first state */
+    uint32_t history_idx = 0U;
+    path_up[history_idx] = state->state; 
+
+    fsm_status_t status = state->state( state, s );
+
+    while( status == fsm_SuperTransition )
+    {
+        history_idx++;
+        path_up[ history_idx ] = state->state;
+        status = state->state( state, s );
+    }
+
+    if( status ==fsm_Transition )
+    {
+        /* Perform Traversal algorithm */
+    }
+    else
+    {
+        /* Restore original State */
+        state->state = path_up[ 0U ];
+    }
+
+
+    /*
     state_func previous = state->state;
     fsm_status_t status = state->state( state, s );
 
@@ -47,6 +93,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         previous = state->state;
         status = state->state( state, signal_Enter );
     }
+    */
 }
 
 extern void FSM_FlushEvents( fsm_events_t * fsm_event )

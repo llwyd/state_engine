@@ -23,6 +23,7 @@ enum DefaultSignals
     signal_None,
     signal_Enter,
     signal_Exit,
+    signal_Traverse, /* Used to return a state's super state * */
 
     signal_Count,
 };
