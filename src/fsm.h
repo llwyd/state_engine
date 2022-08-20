@@ -28,18 +28,13 @@ enum DefaultSignals
 };
 
 /* Circular buffer for FSM events */
-typedef struct
-{
-    uint8_t read_index;
-    uint8_t write_index;
-    uint8_t fill;
-    signal event[ BUFFER_SIZE ];
-} fsm_events_t;
+typedef struct fsm_events_t fsm_events_t;
 
 typedef enum
 {
     fsm_Handled,
     fsm_Transition,
+    fsm_SuperTransition,
     fsm_Ignored,
 } fsm_status_t;
 
@@ -52,7 +47,16 @@ typedef fsm_status_t ( *state_func ) ( fsm_t * this, signal s );
 struct fsm_t
 {
     state_func state;
-} ;
+};
+
+typedef struct hsm_t hsm_t;
+
+struct hsm_t
+{
+    state_func state;
+    hsm_t * super_state;
+};
+
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 
