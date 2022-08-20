@@ -15,6 +15,8 @@
     #define ENTER_CRITICAL {  }
     #define EXIT_CRITICAL  {  }
 #else
+    #include <stdio.h>
+    #include <stdlib.h>
     #include <assert.h>
     #define ENTER_CRITICAL {  }
     #define EXIT_CRITICAL  {  }
@@ -63,9 +65,10 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
     uint32_t history_idx = 0U;
     path_up[history_idx] = state->state; 
 
+    assert( state->state != NULL );
     fsm_status_t status = state->state( state, s );
 
-    while( status == fsm_SuperTransition )
+    while( ( status == fsm_SuperTransition ) && ( state->state != NULL ) )
     {
         history_idx++;
         path_up[ history_idx ] = state->state;

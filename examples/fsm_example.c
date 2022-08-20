@@ -15,12 +15,43 @@ static fsm_status_t SubState_B0( fsm_t * this, signal s);
 enum Signals
 {
     signal_Tick = signal_Count,
+    signal_TransitionToA,
+    signal_TransitionToB,
+    signal_TransitionToA0,
+    signal_TransitionToA1,
+    signal_TransitionToB1,
 };
+
 
 static fsm_status_t SuperState_A( fsm_t * this, signal s)
 {
     printf("SuperState_A\n");
-    return fsm_Handled;
+
+    fsm_status_t status = FSM_SuperTransition( this, NULL );
+    switch( s )
+    {
+        case signal_Enter:
+        {
+            printf("\t Enter Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Exit:
+        {
+            printf("\t Exit Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Tick:
+            printf("\t Tick Signal\n");
+            break;
+        default:
+        {
+        }
+            break;
+    }
+
+    return status;
 }
 
 static fsm_status_t SuperState_B( fsm_t * this, signal s)
@@ -32,7 +63,35 @@ static fsm_status_t SuperState_B( fsm_t * this, signal s)
 static fsm_status_t SubState_A0( fsm_t * this, signal s)
 {
     printf("SubState_A0\n");
-    return FSM_SuperTransition( this, SuperState_A );
+    
+    fsm_status_t status = FSM_SuperTransition( this, SuperState_A );
+    switch( s )
+    {
+        case signal_Enter:
+        {
+            printf("\t Enter Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Exit:
+        {
+            printf("\t Exit Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_TransitionToB:
+        {
+            printf("\t TransitionToB Signal\n");
+            status = FSM_Transition( this, SuperState_B );
+        }
+            break;
+        default:
+        {
+        }
+            break;
+    }
+
+    return status;
 }
 static fsm_status_t SubState_A1( fsm_t * this, signal s)
 {
@@ -61,8 +120,7 @@ int main( void )
     state_machine.state = SubState_A0;
 
     FSM_Dispatch( &state_machine, signal_Tick );
-    FSM_Dispatch( &state_machine, signal_Tick );
-    FSM_Dispatch( &state_machine, signal_Tick );
+    FSM_Dispatch( &state_machine, signal_TransitionToB );
 
     return 0;
 }
