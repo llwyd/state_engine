@@ -138,12 +138,14 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
             status = state->state( state, signal_Enter );
             assert( status == fsm_Handled );
         }
-        printf("--- Traversal complete ---\n "); 
+
+        state->state = target;
+        printf("--- Traversal complete ---\n"); 
     }
     else
     {
         /* Restore original State */
-        state->state = path_up[ 0U ];
+        state->state = source;
     }
 
 
