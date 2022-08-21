@@ -75,9 +75,30 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         status = state->state( state, s );
     }
 
-    if( status ==fsm_Transition )
+    if( status == fsm_Transition )
     {
         /* Perform Traversal algorithm */
+        printf("--- Traversing states ---\n "); 
+        /* Store the target state */
+        path_down[0] = state->state;
+
+        /* Move up one super state */
+        status = state->state( state, signal_Traverse );
+        path_down[1] = state->state;
+
+        /* Go through history of super transitions and see whether there is a shared state */
+
+        uint32_t states_traversed = history_idx;
+
+        for( uint32_t idx = 1U; idx < MAX_NESTED_STATES; idx++ )
+        {
+            for( uint32_t jdx = 1U; idx < MAX_NESTED_STATES; jdx++ )
+            {
+
+            }
+        }
+        
+        printf("--- Traversal complete ---\n "); 
     }
     else
     {

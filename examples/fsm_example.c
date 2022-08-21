@@ -57,6 +57,35 @@ static fsm_status_t SuperState_A( fsm_t * this, signal s)
 static fsm_status_t SuperState_B( fsm_t * this, signal s)
 {
     printf("SuperState_B\n");
+    
+    fsm_status_t status = FSM_SuperTransition( this, NULL );
+    switch( s )
+    {
+        case signal_Enter:
+        {
+            printf("\t Enter Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Exit:
+        {
+            printf("\t Exit Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Tick:
+            printf("\t Tick Signal\n");
+            break;
+        case signal_Traverse:
+        {
+            printf("\t Traverse Signal\n");
+            break;
+        }
+        default:
+        {
+        }
+            break;
+    }
     return fsm_Handled;
 }
 
