@@ -45,6 +45,11 @@ static fsm_status_t SuperState_A( fsm_t * this, signal s)
         case signal_Tick:
             printf("\t Tick Signal\n");
             break;
+        case signal_Traverse:
+        {
+        //    printf("\t Traverse Signal\n");
+            break;
+        }
         default:
         {
         }
@@ -58,7 +63,7 @@ static fsm_status_t SuperState_B( fsm_t * this, signal s)
 {
     printf("SuperState_B\n");
     
-    fsm_status_t status = FSM_SuperTransition( this, NULL );
+    fsm_status_t status;
     switch( s )
     {
         case signal_Enter:
@@ -76,24 +81,27 @@ static fsm_status_t SuperState_B( fsm_t * this, signal s)
         case signal_Tick:
             printf("\t Tick Signal\n");
             break;
-        case signal_Traverse:
+        case signal_TransitionToA0:
         {
-            printf("\t Traverse Signal\n");
-            break;
+            printf("\t TransitionToA0 Signal\n");
+            status = FSM_Transition( this, SubState_A0 );
         }
+            break;
+        case signal_Traverse:
         default:
         {
+            status = FSM_SuperTransition( this, NULL );
         }
             break;
     }
-    return fsm_Handled;
+    return status;
 }
 
 static fsm_status_t SubState_A0( fsm_t * this, signal s)
 {
     printf("SubState_A0\n");
     
-    fsm_status_t status = FSM_SuperTransition( this, SuperState_A );
+    fsm_status_t status = fsm_Handled;
     switch( s )
     {
         case signal_Enter:
@@ -114,8 +122,10 @@ static fsm_status_t SubState_A0( fsm_t * this, signal s)
             status = FSM_Transition( this, SuperState_B );
         }
             break;
+        case signal_Traverse:
         default:
         {
+            status = FSM_SuperTransition( this, SuperState_A );
         }
             break;
     }
@@ -150,6 +160,7 @@ int main( void )
 
     FSM_Dispatch( &state_machine, signal_Tick );
     FSM_Dispatch( &state_machine, signal_TransitionToB );
+    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
 
     return 0;
 }

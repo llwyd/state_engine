@@ -62,42 +62,82 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
     state_func path_down[ MAX_NESTED_STATES ];
 
     /* Always guaranteed to execute the first state */
-    uint32_t history_idx = 0U;
-    path_up[history_idx] = state->state; 
+    path_up[0] = state->state; 
+    const state_func source = state->state;
+
 
     assert( state->state != NULL );
     fsm_status_t status = state->state( state, s );
 
     while( ( status == fsm_SuperTransition ) && ( state->state != NULL ) )
     {
-        history_idx++;
-        path_up[ history_idx ] = state->state;
         status = state->state( state, s );
     }
 
     if( status == fsm_Transition )
     {
         /* Perform Traversal algorithm */
-        printf("--- Traversing states ---\n "); 
+        printf("--- Traversing states ---\n"); 
         /* Store the target state */
         path_down[0] = state->state;
-
-        /* Move up one super state */
-        status = state->state( state, signal_Traverse );
-        path_down[1] = state->state;
-
-        /* Go through history of super transitions and see whether there is a shared state */
-
-        uint32_t states_traversed = history_idx;
-
-        for( uint32_t idx = 1U; idx < MAX_NESTED_STATES; idx++ )
+        const state_func target = state->state;
+        
+        uint32_t down_idx = 1U;
+        while( state->state != NULL )
         {
-            for( uint32_t jdx = 1U; idx < MAX_NESTED_STATES; jdx++ )
-            {
+            status = state->state( state, signal_Traverse );
+            path_down[down_idx++] = state->state;
+        }
+        state->state = source;
+        
+        uint32_t up_idx = 1U;
+        while( state->state != NULL )
+        {
+            status = state->state( state, signal_Traverse );
+            path_up[up_idx++] = state->state;
+        }
 
+        bool found_path = false;
+
+
+        uint32_t num_up;
+        uint32_t num_down;
+        for( int i = 0; i < up_idx; i++ )
+        {
+            for( int j = 0; j < down_idx; j++ )
+            {
+                if( path_up[i] == path_down[j] )
+                {
+                    printf("Path found: %d, %d\n", i, j );
+
+                    num_up = i;
+                    num_down = j;
+
+                    found_path = true;
+                    break;
+                }
+            }
+
+            if( found_path )
+            {
+                break;
             }
         }
-        
+
+        assert( found_path );
+
+        for( int i = 0; i < num_up; i++ )
+        {
+            state->state = path_up[i];
+            status = state->state( state, signal_Exit );
+            assert( status == fsm_Handled );
+        }
+        for( int i = num_down; i > 0U; i-- )
+        {
+            state->state = path_down[i - 1];
+            status = state->state( state, signal_Enter );
+            assert( status == fsm_Handled );
+        }
         printf("--- Traversal complete ---\n "); 
     }
     else
