@@ -19,7 +19,7 @@ enum Signals
     signal_TransitionToB,
     signal_TransitionToA0,
     signal_TransitionToA1,
-    signal_TransitionToB1,
+    signal_TransitionToB0,
 };
 
 
@@ -127,6 +127,12 @@ static fsm_status_t SubState_A0( fsm_t * this, signal s)
             status = FSM_Transition( this, SuperState_B );
         }
             break;
+        case signal_TransitionToB0:
+        {
+            printf("\t TransitionToB0 Signal\n");
+            status = FSM_Transition( this, SubState_B0 );
+        }
+            break;
         case signal_Traverse:
         default:
         {
@@ -173,6 +179,33 @@ static fsm_status_t SubState_A1( fsm_t * this, signal s)
 static fsm_status_t SubState_B0( fsm_t * this, signal s)
 {
     printf("SubState_B0\n");
+    fsm_status_t status = FSM_SuperTransition( this, SuperState_B );
+    switch( s )
+    {
+        case signal_Enter:
+        {
+            printf("\t Enter Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_Exit:
+        {
+            printf("\t Exit Signal\n");
+            status = fsm_Handled;
+        }
+            break;
+        case signal_TransitionToA0:
+        {
+            printf("\t TransitionToA0 Signal\n");
+            status = FSM_Transition( this, SubState_A0 );
+        }
+            break;
+        case signal_Traverse:
+        default:
+        {
+        }
+            break;
+    }
     return fsm_Handled;
 }
 
@@ -197,6 +230,7 @@ int main( void )
     FSM_Dispatch( &state_machine, signal_TransitionToA1 );
     FSM_Dispatch( &state_machine, signal_Tick );
     FSM_Dispatch( &state_machine, signal_TransitionToA0 );
+    FSM_Dispatch( &state_machine, signal_TransitionToB0 );
 
     return 0;
 }

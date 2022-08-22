@@ -123,22 +123,21 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
                 {
                     printf("Ancestor Found\n");
                     found_path = true;
-                    break;
+
+                    /* A legit use of GOTO! */
+                    goto transition;
                 }
             }
-
             path_in[ i + 1 ] = in;
-            if( found_path )
-            {
-                break;
-            }
         }
 
+transition:
         assert( found_path );
 
         i++;
         j++;
 
+        /* Exit nested states */
         for( int jdx = 0; jdx < j; jdx++ )
         {
             state->state = path_out[jdx];
@@ -146,6 +145,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
             assert( status == fsm_Handled );
         }
 
+        /* Enter nested states */
         for( int idx = i; idx > 0; idx-- )
         {
             state->state = path_in[idx - 1];
