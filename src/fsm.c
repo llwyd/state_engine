@@ -24,6 +24,8 @@
 
 #define MAX_NESTED_STATES ( 3 )
 
+_Static_assert( MAX_NESTED_STATES > 0U );
+
 struct fsm_events_t
 {
     uint8_t read_index;
@@ -58,13 +60,12 @@ extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f )
 extern void FSM_Dispatch( fsm_t * state, signal s )
 {
     /* These hold the history up and down the state tree */
-    state_func path_up[ MAX_NESTED_STATES ];
-    state_func path_down[ MAX_NESTED_STATES ];
+    state_func path_out[ MAX_NESTED_STATES ];
+    state_func path_in[ MAX_NESTED_STATES ];
 
     /* Always guaranteed to execute the first state */
-    path_up[0] = state->state; 
+    path_out[0] = state->state; 
     const state_func source = state->state;
-
 
     assert( state->state != NULL );
     fsm_status_t status = state->state( state, s );
@@ -79,14 +80,86 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         /* Perform Traversal algorithm */
         printf("--- Traversing states ---\n"); 
         /* Store the target state */
-        path_down[0] = state->state;
+        path_in[0] = state->state;
         const state_func target = state->state;
+       
+
+        /* Begin traversal by moving source and target up a super state */
+
+        bool found_path;
+
+        uint32_t in_max_nested = MAX_NESTED_STATES;
+        uint32_t out_max_nested = MAX_NESTED_STATES;
         
+        int i = 0;
+        int j = 0;
+        for( i = 0; i < in_max_nested; i++ )
+        {
+            state_func in = path_in[i];
+            for( j = 0; j < out_max_nested; j++ )
+            {
+                state_func out = path_out[j];
+                
+                state->state = in;
+
+                if( in != NULL )
+                {
+                    status = in( state, signal_Traverse );
+                }
+                in = state->state;
+
+                state->state = out;
+                if( out != NULL )
+                {
+                    status = out( state, signal_Traverse );
+                }
+                out = state->state;
+                
+                path_out[ j + 1 ] = out;
+
+                /* if shared ancestor found, then break */
+                if( in == out )
+                {
+                    printf("Ancestor Found\n");
+                    found_path = true;
+                    break;
+                }
+            }
+
+            path_in[ i + 1 ] = in;
+            if( found_path )
+            {
+                break;
+            }
+        }
+
+        assert( found_path );
+        
+        j++;
+        i++;
+            
+
+        for( int jdx = 0; jdx < j; jdx++ )
+        {
+            state->state = path_out[jdx];
+            status = state->state( state, signal_Exit );
+            assert( status == fsm_Handled );
+        }
+        for( int idx = i; idx > 0U; idx-- )
+        {
+            assert( idx > 0 );
+            state->state = path_in[idx - 1];
+            status = state->state( state, signal_Enter );
+            assert( status == fsm_Handled );
+        }
+        
+        state->state = target;
+       /* 
         uint32_t down_idx = 1U;
         while( state->state != NULL )
         {
             status = state->state( state, signal_Traverse );
-            path_down[down_idx++] = state->state;
+            path_in[down_idx++] = state->state;
         }
         state->state = source;
         
@@ -94,11 +167,10 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         while( state->state != NULL )
         {
             status = state->state( state, signal_Traverse );
-            path_up[up_idx++] = state->state;
+            path_out[up_idx++] = state->state;
         }
 
         bool found_path = false;
-
 
         uint32_t num_up;
         uint32_t num_down;
@@ -106,7 +178,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         {
             for( int j = 0; j < down_idx; j++ )
             {
-                if( path_up[i] == path_down[j] )
+                if( path_out[i] == path_in[j] )
                 {
                     printf("Path found: %d, %d\n", i, j );
 
@@ -128,18 +200,19 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
 
         for( int i = 0; i < num_up; i++ )
         {
-            state->state = path_up[i];
+            state->state = path_out[i];
             status = state->state( state, signal_Exit );
             assert( status == fsm_Handled );
         }
         for( int i = num_down; i > 0U; i-- )
         {
-            state->state = path_down[i - 1];
+            state->state = path_in[i - 1];
             status = state->state( state, signal_Enter );
             assert( status == fsm_Handled );
         }
 
         state->state = target;
+        */
         printf("--- Traversal complete ---\n"); 
     }
     else
@@ -147,19 +220,6 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         /* Restore original State */
         state->state = source;
     }
-
-
-    /*
-    state_func previous = state->state;
-    fsm_status_t status = state->state( state, s );
-
-    while ( status == fsm_Transition )
-    {
-        previous( state, signal_Exit );
-        previous = state->state;
-        status = state->state( state, signal_Enter );
-    }
-    */
 }
 
 extern void FSM_FlushEvents( fsm_events_t * fsm_event )

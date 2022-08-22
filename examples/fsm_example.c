@@ -196,6 +196,7 @@ int main( void )
     FSM_Dispatch( &state_machine, signal_TransitionToA0 );
     FSM_Dispatch( &state_machine, signal_TransitionToA1 );
     FSM_Dispatch( &state_machine, signal_Tick );
+    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
 
     return 0;
 }
