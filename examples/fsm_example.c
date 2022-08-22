@@ -80,6 +80,7 @@ static fsm_status_t SuperState_B( fsm_t * this, signal s)
             break;
         case signal_Tick:
             printf("\t Tick Signal\n");
+            status = fsm_Handled;
             break;
         case signal_TransitionToA0:
         {
@@ -206,7 +207,7 @@ static fsm_status_t SubState_B0( fsm_t * this, signal s)
         }
             break;
     }
-    return fsm_Handled;
+    return status;
 }
 
 void Node_Init( hsm_t * node, state_func f, hsm_t * super )
@@ -231,6 +232,8 @@ int main( void )
     FSM_Dispatch( &state_machine, signal_Tick );
     FSM_Dispatch( &state_machine, signal_TransitionToA0 );
     FSM_Dispatch( &state_machine, signal_TransitionToB0 );
+    FSM_Dispatch( &state_machine, signal_Tick );
+    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
 
     return 0;
 }
