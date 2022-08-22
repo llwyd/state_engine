@@ -86,7 +86,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
 
         /* Begin traversal by moving source and target up a super state */
 
-        bool found_path;
+        bool found_path = false;
 
         uint32_t in_max_nested = MAX_NESTED_STATES;
         uint32_t out_max_nested = MAX_NESTED_STATES;
@@ -95,9 +95,10 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         int j = 0;
         for( i = 0; i < in_max_nested; i++ )
         {
-            state_func in = path_in[i];
+            state_func in;
             for( j = 0; j < out_max_nested; j++ )
             {
+                in = path_in[i];
                 state_func out = path_out[j];
                 
                 state->state = in;
@@ -134,10 +135,9 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         }
 
         assert( found_path );
-        
-        j++;
+
         i++;
-            
+        j++;
 
         for( int jdx = 0; jdx < j; jdx++ )
         {
@@ -145,74 +145,16 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
             status = state->state( state, signal_Exit );
             assert( status == fsm_Handled );
         }
-        for( int idx = i; idx > 0U; idx-- )
+
+        for( int idx = i; idx > 0; idx-- )
         {
-            assert( idx > 0 );
             state->state = path_in[idx - 1];
             status = state->state( state, signal_Enter );
             assert( status == fsm_Handled );
         }
         
         state->state = target;
-       /* 
-        uint32_t down_idx = 1U;
-        while( state->state != NULL )
-        {
-            status = state->state( state, signal_Traverse );
-            path_in[down_idx++] = state->state;
-        }
-        state->state = source;
         
-        uint32_t up_idx = 1U;
-        while( state->state != NULL )
-        {
-            status = state->state( state, signal_Traverse );
-            path_out[up_idx++] = state->state;
-        }
-
-        bool found_path = false;
-
-        uint32_t num_up;
-        uint32_t num_down;
-        for( int i = 0; i < up_idx; i++ )
-        {
-            for( int j = 0; j < down_idx; j++ )
-            {
-                if( path_out[i] == path_in[j] )
-                {
-                    printf("Path found: %d, %d\n", i, j );
-
-                    num_up = i;
-                    num_down = j;
-
-                    found_path = true;
-                    break;
-                }
-            }
-
-            if( found_path )
-            {
-                break;
-            }
-        }
-
-        assert( found_path );
-
-        for( int i = 0; i < num_up; i++ )
-        {
-            state->state = path_out[i];
-            status = state->state( state, signal_Exit );
-            assert( status == fsm_Handled );
-        }
-        for( int i = num_down; i > 0U; i-- )
-        {
-            state->state = path_in[i - 1];
-            status = state->state( state, signal_Enter );
-            assert( status == fsm_Handled );
-        }
-
-        state->state = target;
-        */
         printf("--- Traversal complete ---\n"); 
     }
     else
