@@ -85,7 +85,6 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
        
 
         /* Begin traversal by moving source and target up a super state */
-
         bool found_path = false;
 
         uint32_t in_max_nested = MAX_NESTED_STATES;
@@ -96,19 +95,17 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         for( i = 0; i < in_max_nested; i++ )
         {
             state_func in;
+            in = path_in[i];
+            state->state = in;
+            if( in != NULL )
+            {
+                status = in( state, signal_Traverse );
+            }
+            in = state->state;
+            
             for( j = 0; j < out_max_nested; j++ )
             {
-                in = path_in[i];
-                state_func out = path_out[j];
-                
-                state->state = in;
-
-                if( in != NULL )
-                {
-                    status = in( state, signal_Traverse );
-                }
-                in = state->state;
-
+                state_func out = path_out[j]; 
                 state->state = out;
                 if( out != NULL )
                 {
