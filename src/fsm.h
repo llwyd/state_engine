@@ -14,6 +14,9 @@
 
 #define BUFFER_SIZE ( 32U )
 
+#define STATE_PRINT( SIGNAL ) printf("[%12s]->[%d]\n", __func__, SIGNAL )
+
+
 /* Signal to send events to a given state */
 typedef uint32_t signal;
 
@@ -48,14 +51,6 @@ typedef fsm_status_t ( *state_func ) ( fsm_t * this, signal s );
 struct fsm_t
 {
     state_func state;
-};
-
-typedef struct hsm_t hsm_t;
-
-struct hsm_t
-{
-    state_func state;
-    hsm_t * super_state;
 };
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
