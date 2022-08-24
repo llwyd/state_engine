@@ -81,8 +81,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         printf("--- Traversing states ---\n"); 
         /* Store the target state */
         path_in[0] = state->state;
-        const state_func target = state->state;
-       
+        const state_func target = state->state; 
 
         /* Begin traversal by moving source and target up a super state */
         bool found_path = false;
@@ -92,47 +91,48 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         
         int i = 0;
         int j = 0;
-        for( i = 0; i < in_max_nested; i++ )
+        for( i = 1; i < in_max_nested; i++ )
         {
             state_func in;
-            in = path_in[i];
-            state->state = in;
-            if( in != NULL )
+            state->state = path_in[ i - 1 ];
+            if( state->state != NULL )
             {
-                status = in( state, signal_Traverse );
+                status = state->state( state, signal_Traverse );
             }
             in = state->state;
             
-            for( j = 0; j < out_max_nested; j++ )
+            assert( i< MAX_NESTED_STATES ); 
+            path_in[ i ] = in;
+            
+            for( j = 1; j < out_max_nested; j++ )
             {
-                state_func out = path_out[j]; 
-                state->state = out;
-                if( out != NULL )
+                state->state = path_out[j - 1]; 
+                if( state->state != NULL )
                 {
-                    status = out( state, signal_Traverse );
+                    status = state->state( state, signal_Traverse );
+                    assert( j < MAX_NESTED_STATES ); 
+                    path_out[ j ] = state->state;
                 }
-                out = state->state;
-                
-                path_out[ j + 1 ] = out;
+                else
+                {
+                    out_max_nested = j;
+                }
 
                 /* if shared ancestor found, then break */
-                if( in == out )
+                if( in == state->state )
                 {
                     printf("Ancestor Found\n");
                     found_path = true;
 
                     /* A legit use of GOTO! */
-                    goto transition;
+                    goto transition_path_found;
                 }
+               
             }
-            path_in[ i + 1 ] = in;
         }
 
-transition:
+transition_path_found:
         assert( found_path );
-
-        i++;
-        j++;
 
         /* Exit nested states */
         for( int jdx = 0; jdx < j; jdx++ )
@@ -145,6 +145,7 @@ transition:
         /* Enter nested states */
         for( int idx = i; idx > 0; idx-- )
         {
+            assert( idx != 0 );
             state->state = path_in[idx - 1];
             status = state->state( state, signal_Enter );
             assert( status == fsm_Handled );
