@@ -58,6 +58,9 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 /* Event Dispatcher */
 extern void FSM_Dispatch( fsm_t * state, signal s );
 
+extern fsm_status_t FSM_Transition( fsm_t * state, state_func f );
+extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f );
+
 /* Event queuing */
 extern void FSM_FlushEvents( fsm_events_t * fsm_event );
 extern void FSM_AddEvent( fsm_events_t * fsm_event, signal s);

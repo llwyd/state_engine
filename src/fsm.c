@@ -89,33 +89,33 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
         uint32_t in_max_nested = MAX_NESTED_STATES;
         uint32_t out_max_nested = MAX_NESTED_STATES;
         
-        int i = 0;
-        int j = 0;
-        for( i = 1; i < in_max_nested; i++ )
+        uint32_t in_idx = 0;
+        uint32_t out_idx = 0;
+        for( in_idx = 1; in_idx < in_max_nested; in_idx++ )
         {
             state_func in;
-            state->state = path_in[ i - 1 ];
+            state->state = path_in[ in_idx - 1 ];
             if( state->state != NULL )
             {
                 status = state->state( state, signal_Traverse );
             }
             in = state->state;
             
-            assert( i< MAX_NESTED_STATES ); 
-            path_in[ i ] = in;
+            assert( in_idx < MAX_NESTED_STATES ); 
+            path_in[ in_idx ] = in;
             
-            for( j = 1; j < out_max_nested; j++ )
+            for( out_idx = 1; out_idx < out_max_nested; out_idx++ )
             {
-                state->state = path_out[j - 1]; 
+                state->state = path_out[out_idx - 1]; 
                 if( state->state != NULL )
                 {
                     status = state->state( state, signal_Traverse );
-                    assert( j < MAX_NESTED_STATES ); 
-                    path_out[ j ] = state->state;
+                    assert( out_idx < MAX_NESTED_STATES ); 
+                    path_out[ out_idx ] = state->state;
                 }
                 else
                 {
-                    out_max_nested = j;
+                    out_max_nested = out_idx;
                 }
 
                 /* if shared ancestor found, then break */
@@ -135,7 +135,7 @@ transition_path_found:
         assert( found_path );
 
         /* Exit nested states */
-        for( int jdx = 0; jdx < j; jdx++ )
+        for( uint32_t jdx = 0; jdx < out_idx; jdx++ )
         {
             state->state = path_out[jdx];
             status = state->state( state, signal_Exit );
@@ -143,7 +143,7 @@ transition_path_found:
         }
 
         /* Enter nested states */
-        for( int idx = i; idx > 0; idx-- )
+        for( uint32_t idx = in_idx; idx > 0; idx-- )
         {
             assert( idx != 0 );
             state->state = path_in[idx - 1];
@@ -161,6 +161,7 @@ transition_path_found:
         state->state = source;
     }
 }
+
 
 extern void FSM_FlushEvents( fsm_events_t * fsm_event )
 {
