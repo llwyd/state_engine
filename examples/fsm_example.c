@@ -134,6 +134,12 @@ static fsm_status_t SubState_A0( fsm_t * this, signal s)
             status = FSM_Transition( this, SubState_B0 );
         }
             break;
+        case signal_TransitionToA0:
+        {
+            printf("\t TransitionToA0 Signal\n");
+            status = FSM_Transition( this, SubState_A0 );
+        }
+            break;
         case signal_Traverse:
         default:
         {
@@ -224,6 +230,7 @@ int main( void )
     FSM_Dispatch( &state_machine, signal_TransitionToA0 );
     FSM_Dispatch( &state_machine, signal_TransitionToB0 );
     FSM_Dispatch( &state_machine, signal_Tick );
+    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
     FSM_Dispatch( &state_machine, signal_TransitionToA0 );
 
     return 0;

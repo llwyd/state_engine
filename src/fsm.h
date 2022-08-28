@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BUFFER_SIZE ( 32U )
 
 #ifdef TARGET_ARM
 #define STATE_PRINT( SIGNAL )
@@ -33,6 +32,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #define STATE_PRINT( SIGNAL ) printf("[%12s]->[%d]\n", __func__, SIGNAL )
+#define STATE_DISPATCH_START printf("[FSM]: Dispatching Event Start\n");
+#define STATE_DISPATCH_END printf("[FSM]: Dispatching Event End\n");
+
+#define STATE_TRAVERSE_START printf("[FSM]: Traversing States Start\n");
+#define STATE_TRAVERSE_END printf("[FSM]: Traversing States End\n");
 
 #define STATE_ASSERT( c ) \
 { \

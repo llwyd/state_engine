@@ -59,7 +59,8 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
 {
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );
-    
+    STATE_DISPATCH_START;
+
     /* These hold the history up and down the state tree */
     state_func path_out[ MAX_NESTED_STATES ];
     state_func path_in[ MAX_NESTED_STATES ];
@@ -78,7 +79,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
     if( status == fsm_Transition )
     {
         /* Perform Traversal algorithm */
-        printf("--- Traversing states ---\n"); 
+        STATE_TRAVERSE_START;    
 
         /* Store the target state */
         path_in[0] = state->state;
@@ -153,14 +154,16 @@ transition_path_found:
         
         /* Reassign original state */    
         state->state = target;
-        
-        printf("--- Traversal complete ---\n"); 
+    
+        STATE_TRAVERSE_END;    
     }
     else
     {
         /* Restore original State */
         state->state = source;
     }
+
+    STATE_DISPATCH_END;
 }
 
 
