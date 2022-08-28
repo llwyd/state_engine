@@ -14,8 +14,32 @@
 
 #define BUFFER_SIZE ( 32U )
 
+#ifdef TARGET_ARM
+#define STATE_PRINT( SIGNAL )
+
+#define STATE_ASSERT( c ) \
+{ \
+    if ( !(c) ) \
+    { \
+        asm("CPSID IF"); \
+        while(1); \
+    } \
+} 
+
+#elif TARGET_ESP32
+#define STATE_PRINT( SIGNAL )
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
 #define STATE_PRINT( SIGNAL ) printf("[%12s]->[%d]\n", __func__, SIGNAL )
 
+#define STATE_ASSERT( c ) \
+{ \
+    assert( (c) ); \
+} 
+
+#endif
 
 /* Signal to send events to a given state */
 typedef uint32_t signal;
