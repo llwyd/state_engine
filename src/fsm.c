@@ -57,6 +57,19 @@ extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f )
 
 extern void FSM_Dispatch( fsm_t * state, signal s )
 {
+    state_func previous = state->state;
+    fsm_status_t status = state->state( state, s );
+
+    while ( status == fsm_Transition )
+    {
+        previous( state, signal_Exit );
+        previous = state->state;
+        status = state->state( state, signal_Enter );
+    }
+}
+
+extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
+{
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );
     STATE_DISPATCH_START;

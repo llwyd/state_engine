@@ -222,16 +222,16 @@ int main( void )
 
     state_machine.state = SubState_A0;
 
-    FSM_Dispatch( &state_machine, signal_Tick );
-    FSM_Dispatch( &state_machine, signal_TransitionToB );
-    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
-    FSM_Dispatch( &state_machine, signal_TransitionToA1 );
-    FSM_Dispatch( &state_machine, signal_Tick );
-    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
-    FSM_Dispatch( &state_machine, signal_TransitionToB0 );
-    FSM_Dispatch( &state_machine, signal_Tick );
-    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
-    FSM_Dispatch( &state_machine, signal_TransitionToA0 );
+    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToB );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA1 );
+    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToB0 );
+    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
+    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
 
     return 0;
 }

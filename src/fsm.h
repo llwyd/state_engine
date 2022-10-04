@@ -83,7 +83,8 @@ struct fsm_t
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 
-/* Event Dispatcher */
+/* Event Dispatchers */
+extern void FSM_HierarchicalDispatch( fsm_t * state, signal s );
 extern void FSM_Dispatch( fsm_t * state, signal s );
 
 extern fsm_status_t FSM_Transition( fsm_t * state, state_func f );
