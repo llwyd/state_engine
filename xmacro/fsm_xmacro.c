@@ -10,11 +10,23 @@ typedef struct
 
 typedef uint32_t signal_t;
 
+enum Signals
+{
+    signal_Entry,
+    signal_Exit,
+    signal_Tick,
+    signal_TransitionToA,
+    signal_TransitionToB,
+    signal_TransitionToA0,
+    signal_TransitionToA1,
+    signal_TransitionToB0,
+};
+
 typedef enum
 {
     fsm_Handled,
+    fsm_Unhandled, /* If unhandled, need to traverse up the states */
     fsm_Transition,
-    fsm_SuperTransition,
 } state_return_t;
 
 #define ROOT_STATE \
@@ -40,7 +52,7 @@ typedef enum
 #define FUNC_(x) State##x
 
 #define FUNC_RETURN  state_return_t 
-#define FUNC_ARGS ( void )
+#define FUNC_ARGS ( signal_t s )
 
 typedef enum
 {
@@ -65,7 +77,7 @@ const state_t parent_lookup[ ] =
     #undef X
 };
 
-state_return_t (*func_lookup[ ])(void) =
+state_return_t (*func_lookup[ ]) FUNC_ARGS =
 {
     [ STATE_ROOT ] = NULL,
     #define X(a, b) [ ENUM_(a) ] = FUNC_(a),
@@ -73,35 +85,46 @@ state_return_t (*func_lookup[ ])(void) =
     #undef X
 };
 
-state_return_t StateB0( void )
+state_return_t StateB0( signal_t s )
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA1( void )
+state_return_t StateA1( signal_t s )
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA0( void )
+state_return_t StateA0( signal_t s )
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA( void )
+state_return_t StateA( signal_t s )
 {
     printf("Func: %s\n", __func__);
-    state_return_t ret = fsm_Handled;
+    state_return_t ret = fsm_Unhandled;
+
+    switch( s )
+    {
+        case signal_Entry:
+        case signal_Exit:
+            ret = fsm_Handled;
+            break;
+        default:
+            break;
+    }
+
     return ret;
 }
 
-state_return_t StateB( void )
+state_return_t StateB( signal_t s )
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
@@ -111,7 +134,7 @@ state_return_t StateB( void )
 int main( void )
 {
     printf("X-Macro FSM Example\n");
-
-    func_lookup[STATE_A]();
+    signal_t s;
+    func_lookup[STATE_A]( signal_Entry );
     return 0;
 }
