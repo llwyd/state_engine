@@ -10,36 +10,12 @@ typedef struct
 
 typedef uint32_t signal_t;
 
-enum Signals
-{
-    signal_Entry,
-    signal_Exit,
-    signal_Tick,
-    signal_TransitionToA,
-    signal_TransitionToB,
-    signal_TransitionToA0,
-    signal_TransitionToA1,
-    signal_TransitionToB0,
-};
-
 typedef enum
 {
     fsm_Handled,
     fsm_Unhandled, /* If unhandled, need to traverse up the states */
     fsm_Transition,
 } state_return_t;
-
-#define ROOT_STATE \
-    X( ROOT ) \
-
-#define PARENT_STATES \
-    X( A ) \
-    X( B ) \
-
-#define SUB_STATES \
-    X( A0 ) \
-    X( A1 ) \
-    X( B0 ) \
 
 #define STATES \
     X( A, ROOT ) \
@@ -48,8 +24,19 @@ typedef enum
     X( A1, A ) \
     X( B0, A ) \
 
+#define SIGNALS \
+    X( Entry ) \
+    X( Exit ) \
+    X( Tick ) \
+    X( TransitionToA ) \
+    X( TransitionToB ) \
+    X( TransitionToA0 ) \
+    X( TransitionToA1 ) \
+    X( TransitionToB0 )
+
 #define ENUM_(x) STATE_##x
 #define FUNC_(x) State##x
+#define SIGNAL_ENUM(x) signal_##x
 
 #define FUNC_RETURN  state_return_t 
 #define FUNC_ARGS ( signal_t s )
@@ -57,14 +44,29 @@ typedef enum
 typedef enum
 {
     STATE_ROOT,
-    #define X(a) ENUM_(a),
-        PARENT_STATES
-        SUB_STATES
+    #define X(a,b) ENUM_(a),
+        STATES
     #undef X
     STATE_COUNT
 }
 state_t;
 
+enum Signals
+{
+    #define X(a) SIGNAL_ENUM(a),
+        SIGNALS
+    #undef X
+    signal_Count,
+};
+
+const char *signal_str[] = 
+{
+    #define X(a) [SIGNAL_ENUM(a)] = #a,
+        SIGNALS
+    #undef X
+};
+
+#define PRINT_SIGNAL( x ) printf("%s -> %s Signal\n", __func__, signal_str[x] )
 
 #define X(a,b) FUNC_RETURN FUNC_(a) FUNC_ARGS;
     STATES
@@ -108,7 +110,7 @@ state_return_t StateA0( signal_t s )
 
 state_return_t StateA( signal_t s )
 {
-    printf("Func: %s\n", __func__);
+        PRINT_SIGNAL(s);
     state_return_t ret = fsm_Unhandled;
 
     switch( s )
@@ -134,7 +136,7 @@ state_return_t StateB( signal_t s )
 int main( void )
 {
     printf("X-Macro FSM Example\n");
-    signal_t s;
+ //   signal_t s;
     func_lookup[STATE_A]( signal_Entry );
     return 0;
 }
