@@ -39,7 +39,8 @@ typedef enum
 #define SIGNAL_ENUM(x) signal_##x
 
 #define FUNC_RETURN  state_return_t 
-#define FUNC_ARGS ( signal_t s )
+#define FUNC_ARGS ( state_t * state, signal_t s )
+
 
 typedef enum
 {
@@ -87,30 +88,30 @@ state_return_t (*func_lookup[ ]) FUNC_ARGS =
     #undef X
 };
 
-state_return_t StateB0( signal_t s )
+state_return_t StateB0 FUNC_ARGS
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA1( signal_t s )
+state_return_t StateA1 FUNC_ARGS
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA0( signal_t s )
+state_return_t StateA0 FUNC_ARGS
 {
-    printf("Func: %s\n", __func__);
-    state_return_t ret = fsm_Handled;
+    PRINT_SIGNAL(s);
+    state_return_t ret = fsm_Unhandled;
     return ret;
 }
 
-state_return_t StateA( signal_t s )
+state_return_t StateA FUNC_ARGS
 {
-        PRINT_SIGNAL(s);
+    PRINT_SIGNAL(s);
     state_return_t ret = fsm_Unhandled;
 
     switch( s )
@@ -126,17 +127,37 @@ state_return_t StateA( signal_t s )
     return ret;
 }
 
-state_return_t StateB( signal_t s )
+state_return_t StateB FUNC_ARGS
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
+void Dispatch( state_t * state, signal_t s )
+{
+    state_t previous = *state;
+    state_return_t status = func_lookup[ *state ]( state, s );
+
+    while( (status == fsm_Unhandled ) && ( *state != STATE_ROOT ) )
+    {
+        *state = parent_lookup[ *state ];
+        if( *state != STATE_ROOT )
+        {
+            status = func_lookup[ *state ]( state, s );
+        }
+    }
+
+    *state = previous;
+}
+
 int main( void )
 {
     printf("X-Macro FSM Example\n");
- //   signal_t s;
-    func_lookup[STATE_A]( signal_Entry );
+    state_t current_state = STATE_A0;
+    
+    Dispatch( &current_state, signal_Tick ); 
+    Dispatch( &current_state, signal_Tick ); 
+
     return 0;
 }
