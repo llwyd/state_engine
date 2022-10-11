@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 typedef struct
 {
@@ -22,7 +23,8 @@ typedef enum
     X( B, ROOT ) \
     X( A0, A ) \
     X( A1, A ) \
-    X( B0, A ) \
+    X( B0, B ) \
+    X( A00, A0 ) \
 
 #define SIGNALS \
     X( Entry ) \
@@ -64,6 +66,14 @@ const char *signal_str[] =
 {
     #define X(a) [SIGNAL_ENUM(a)] = #a,
         SIGNALS
+    #undef X
+};
+
+const char *state_str[] =
+{
+    "ROOT",
+    #define X(a,b) [ENUM_(a)] = #a,
+        STATES
     #undef X
 };
 
@@ -134,6 +144,13 @@ state_return_t StateB FUNC_ARGS
     return ret;
 }
 
+state_return_t StateA00 FUNC_ARGS
+{
+    printf("Func: %s\n", __func__);
+    state_return_t ret = fsm_Handled;
+    return ret;
+}
+
 void Dispatch( state_t * state, signal_t s )
 {
     state_t previous = *state;
@@ -148,12 +165,54 @@ void Dispatch( state_t * state, signal_t s )
         }
     }
 
+    if( status == fsm_Transition )
+    {
+
+    }
+
     *state = previous;
+}
+
+void DetermineStackSize( void )
+{
+    printf("Determining Stack Size\n");
+
+    printf("State count: %d\n", (int)STATE_COUNT);
+
+    int nest_size = 0U;
+    
+    int j = STATE_COUNT - 1U;
+    for( int i = 1; i < STATE_COUNT; i++ )
+    {
+        int current_nest = 1;
+        assert( j > 0 );
+        state_t current_state = (state_t)j;
+        printf("Current: State[%d] = %s\n", j, state_str[j]); 
+
+        state_t current_parent = current_state;
+        while( current_parent != STATE_ROOT )
+        {
+            current_parent = parent_lookup[(int)current_parent];
+            printf("\t %s\n", state_str[(int)current_parent]);
+            current_nest++;
+        }
+
+        if( current_nest > nest_size )
+        {
+            nest_size = current_nest;
+        }
+
+        j--;
+    }
+
+    printf("Max State Nesting Size: %d\n", nest_size );
 }
 
 int main( void )
 {
     printf("X-Macro FSM Example\n");
+    DetermineStackSize();
+
     state_t current_state = STATE_A0;
     
     Dispatch( &current_state, signal_Tick ); 
