@@ -208,6 +208,34 @@ void DetermineStackSize( void )
     printf("Max State Nesting Size: %d\n", nest_size );
 }
 
+#define NESTED_STATES(...) __VA_ARGS__
+
+#define STATE_LEVEL( level, ... ) level
+
+#define NESTED \
+    X( _0, root ) \
+    X( _1, a, b ) \
+    X( _2, a0, a1, b0 ) \
+
+typedef enum
+{
+    #define X(x, ...) STATE_LEVEL(x),
+        NESTED
+    #undef X
+    count,
+} enum_t;
+
+typedef enum
+{
+    #define X(x, ...) __VA_ARGS__,
+        NESTED
+    #undef X
+    state_count,
+}
+states_t;
+
+static const char test[state_count];
+
 int main( void )
 {
     printf("X-Macro FSM Example\n");
