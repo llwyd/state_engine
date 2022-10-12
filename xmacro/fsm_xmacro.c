@@ -210,15 +210,14 @@ void DetermineStackSize( void )
 
 #define NESTED_STATES(x, ...) __VA_ARGS__,
 
-
 #define _NUM_LEVELS( _0, _1, _2, _3, ... ) _3
-#define NUM_LEVELS(...) _NUM_LEVELS( __VA_ARGS__, 3, 2, 1, 0 )
+#define NUM_LEVELS(...) _NUM_LEVELS( __VA_ARGS__ 3, 2, 1, 0 )
 #define STATE_LEVEL( level, ... ) level,
 
 #define NESTED(X) \
-    X( _0, root ) \
-    X( _1, a, b ) \
-    X( _2, a0, a1, b0 ) \
+    X( _root, root ) \
+    X( _parent, a, b ) \
+    X( _sub, a0, a1, b0 ) \
 
 typedef enum
 {
@@ -233,11 +232,19 @@ typedef enum
 }
 states_t;
 
-//#define num NUM_LEVELS(NESTED(STATE_LEVEL) )
+#define NEST_LEVELS NUM_LEVELS( NESTED( STATE_LEVEL) )
 
-//static const uint32_t num_states = num;
+#if   ( NEST_LEVELS > 1 )
+#pragma message ("Hierarchical State Machine")
+#elif (NEST_LEVELS == 1 )
+#pragma message ("Finite (flat) State Machine")
+#else
+_Static_assert(false, "Bad state definitions")
+#endif
 
-static const char test[state_count];
+static const uint32_t num_states = NEST_LEVELS;
+
+static const char test[NEST_LEVELS];
 
 int main( void )
 {
