@@ -4,15 +4,11 @@
 #include <stdbool.h>
 #include <assert.h>
 
-typedef struct
-{
-    void (*fn)(void);
-} state_machine_t;
-
 typedef uint32_t signal_t;
 
 typedef enum
 {
+    fsm_None,
     fsm_Handled,
     fsm_Unhandled, /* If unhandled, need to traverse up the states */
     fsm_Transition,
@@ -40,13 +36,11 @@ typedef enum
 #define FUNC_(x) State##x
 #define SIGNAL_ENUM(x) signal_##x
 
-#define FUNC_RETURN  state_return_t 
-#define FUNC_ARGS ( state_t * state, signal_t s )
 
 
 typedef enum
 {
-    STATE_ROOT,
+    STATE_ROOT = 0U,
     #define X(a,b) ENUM_(a),
         STATES
     #undef X
@@ -71,11 +65,14 @@ const char *signal_str[] =
 
 const char *state_str[] =
 {
-    "ROOT",
+    [STATE_ROOT] = "ROOT",
     #define X(a,b) [ENUM_(a)] = #a,
         STATES
     #undef X
 };
+
+#define FUNC_RETURN  state_return_t 
+#define FUNC_ARGS ( state_t * state, signal_t s )
 
 #define PRINT_SIGNAL( x ) printf("%s -> %s Signal\n", __func__, signal_str[x] )
 
@@ -90,7 +87,7 @@ const state_t parent_lookup[ ] =
     #undef X
 };
 
-state_return_t (*func_lookup[ ]) FUNC_ARGS =
+FUNC_RETURN (*func_lookup[ ]) FUNC_ARGS =
 {
     [ STATE_ROOT ] = NULL,
     #define X(a, b) [ ENUM_(a) ] = FUNC_(a),
@@ -98,28 +95,43 @@ state_return_t (*func_lookup[ ]) FUNC_ARGS =
     #undef X
 };
 
-state_return_t StateB0 FUNC_ARGS
+FUNC_RETURN StateB0 FUNC_ARGS
 {
-    printf("Func: %s\n", __func__);
+    PRINT_SIGNAL(s);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA1 FUNC_ARGS
+FUNC_RETURN StateA1 FUNC_ARGS
 {
-    printf("Func: %s\n", __func__);
+    PRINT_SIGNAL(s);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA0 FUNC_ARGS
+FUNC_RETURN StateA0 FUNC_ARGS
 {
     PRINT_SIGNAL(s);
     state_return_t ret = fsm_Unhandled;
+
+    switch( s )
+    {
+        case signal_TransitionToB:
+            *state = STATE_A1;
+            ret = fsm_Transition;
+            break;
+        case signal_Entry:
+        case signal_Exit:
+            ret = fsm_Handled;
+            break;
+        default:
+            break;
+    }
+
     return ret;
 }
 
-state_return_t StateA FUNC_ARGS
+FUNC_RETURN StateA FUNC_ARGS
 {
     PRINT_SIGNAL(s);
     state_return_t ret = fsm_Unhandled;
@@ -137,14 +149,14 @@ state_return_t StateA FUNC_ARGS
     return ret;
 }
 
-state_return_t StateB FUNC_ARGS
+FUNC_RETURN StateB FUNC_ARGS
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
     return ret;
 }
 
-state_return_t StateA00 FUNC_ARGS
+FUNC_RETURN StateA00 FUNC_ARGS
 {
     printf("Func: %s\n", __func__);
     state_return_t ret = fsm_Handled;
@@ -167,10 +179,35 @@ void Dispatch( state_t * state, signal_t s )
 
     if( status == fsm_Transition )
     {
-
+        state_t path[ 3U ];
+        printf("Begin Transition\n");
+        state_t target = *state;
+        
+        state_t source_parent = previous;
+        state_t target_parent = target;
+        printf("[%s] <-> [%s]\n", state_str[target_parent], state_str[source_parent]);
+        
+        for( int source_idx = 1; source_idx < 3U; source_idx++ )
+        {
+            source_parent = parent_lookup[source_parent];
+            for( int target_idx = 1; target_idx < 3U; target_idx++ )
+            {
+                target_parent = parent_lookup[target_parent];
+                if( target_parent == source_parent )
+                {
+                    printf("Shared Ancestor Found\n");
+                    printf("[%s] <-> [%s]\n", state_str[target_parent], state_str[source_parent]);
+                    goto transition_found;
+                }
+            }
+        }
+        
+transition_found:
     }
-
-    *state = previous;
+    else
+    {
+        *state = previous;
+    }
 }
 
 void DetermineStackSize( void )
@@ -236,11 +273,22 @@ typedef enum
 }
 states_t;
 
+typedef struct state_machine_t state_machine_t;
+typedef struct state_func_t ( *state_func_t ) ( state_machine_t * this, signal_t s );
+
+struct state_machine_t 
+{
+    state_func_t parent;
+    state_func_t state;
+};
+
+
+
 #define NEST_LEVELS NUM_LEVELS( NESTED( STATE_LEVEL) )
 
-#define PARENT( parent ) \
-    state->state = parent; \
-    ret = fsm_Unhandled; 
+#define PARENT( parent ) state->parent = parent, ret = fsm_Unhandled
+#define TRANSITION( new_state ) state->state = new_state, ret = fsm_Transition
+#define HANDLED() ret = state->state = __func__, ret = fsm_Handled
 
 #if   ( NEST_LEVELS > 1 )
 #pragma message ("Hierarchical State Machine")
@@ -257,12 +305,12 @@ static const states_t state_stack[NEST_LEVELS] = { _INITIAL_STATES( root, a, b) 
 int main( void )
 {
     printf("X-Macro FSM Example\n");
-    DetermineStackSize();
 
     state_t current_state = STATE_A0;
     
     Dispatch( &current_state, signal_Tick ); 
     Dispatch( &current_state, signal_Tick ); 
+    Dispatch( &current_state, signal_TransitionToB ); 
 
     return 0;
 }
