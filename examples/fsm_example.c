@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "../src/fsm.h"
 
-
 /* Super States */
 static state_ret_t SuperState_A( fsm_t * this, signal s);
 static state_ret_t SuperState_B( fsm_t * this, signal s);
@@ -12,20 +11,14 @@ static state_ret_t SubState_A0( fsm_t * this, signal s);
 static state_ret_t SubState_A1( fsm_t * this, signal s);
 static state_ret_t SubState_B0( fsm_t * this, signal s);
 
-#define SIGNALS \
+#define SIGNALS(SIG) \
     SIG( TransitionToA ) \
     SIG( TransitionToB ) \
     SIG( TransitionToA0 ) \
     SIG( TransitionToA1 ) \
     SIG( TransitionToB0 ) \
 
-enum Signals
-{
-    SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ),
-    #define SIG(x) SIGNAL_ENUM(x),
-        SIGNALS
-    #undef SIG
-};
+GENERATE_SIGNALS( SIGNALS );
 
 static state_ret_t SuperState_A( fsm_t * this, signal s)
 {

@@ -64,7 +64,8 @@
     RETURN( Unhandled ) \
     RETURN( Transition ) \
 
-#define SIGNAL_ENUM(x) signal_##x
+#define SIGNAL_ENUM(x) signal_##x,
+#define _SIGNAL_ENUM(x) signal_##x
 #define RETURN_ENUM(x) return_##x
 
 /* Signal to send events to a given state */
@@ -73,10 +74,10 @@ typedef uint32_t signal;
 /* Default signals for state machine */
 enum DefaultSignals
 {
-    #define SIGNAL(x) SIGNAL_ENUM(x),
+    #define SIGNAL(x) SIGNAL_ENUM(x)
         DEFAULT_SIGNALS
     #undef SIGNAL
-    SIGNAL_ENUM(DefaultCount),
+    SIGNAL_ENUM(DefaultCount)
 };
 
 typedef enum
@@ -86,6 +87,14 @@ typedef enum
     #undef RETURN
 }
 state_ret_t;
+
+#define GENERATE_SIGNALS( SIG ) \
+    enum Signal \
+    { \
+        _SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ) \
+        SIG( SIGNAL_ENUM ) \
+    }
+
 
 #define PARENT( _state, parent_state ) _state->state = parent_state;  ret = RETURN_ENUM( Unhandled )
 #define TRANSITION( _state, new_state ) _state->state = new_state;  ret = RETURN_ENUM( Transition )
