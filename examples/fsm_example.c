@@ -4,13 +4,13 @@
 
 
 /* Super States */
-static fsm_status_t SuperState_A( fsm_t * this, signal s);
-static fsm_status_t SuperState_B( fsm_t * this, signal s);
+static state_ret_t SuperState_A( fsm_t * this, signal s);
+static state_ret_t SuperState_B( fsm_t * this, signal s);
 
 /* SubStates */
-static fsm_status_t SubState_A0( fsm_t * this, signal s);
-static fsm_status_t SubState_A1( fsm_t * this, signal s);
-static fsm_status_t SubState_B0( fsm_t * this, signal s);
+static state_ret_t SubState_A0( fsm_t * this, signal s);
+static state_ret_t SubState_A1( fsm_t * this, signal s);
+static state_ret_t SubState_B0( fsm_t * this, signal s);
 
 enum Signals
 {
@@ -23,197 +23,154 @@ enum Signals
 };
 
 
-static fsm_status_t SuperState_A( fsm_t * this, signal s)
+static state_ret_t SuperState_A( fsm_t * this, signal s)
 {
     STATE_PRINT( s );
+    state_ret_t ret;
 
-    fsm_status_t status = FSM_SuperTransition( this, NULL );
     switch( s )
     {
         case signal_Enter:
-        {
             printf("\t Enter Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Exit:
-        {
             printf("\t Exit Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Tick:
             printf("\t Tick Signal\n");
+            HANDLED( this );
             break;
         case signal_Traverse:
-        {
-        //    printf("\t Traverse Signal\n");
-            break;
-        }
         default:
         {
-        }
+            PARENT( this, NULL );
             break;
+        }
     }
 
-    return status;
+    return ret;
 }
 
-static fsm_status_t SuperState_B( fsm_t * this, signal s)
+static state_ret_t SuperState_B( fsm_t * this, signal s)
 {
     STATE_PRINT( s );
+    state_ret_t ret;
     
-    fsm_status_t status = FSM_SuperTransition( this, NULL );
     switch( s )
     {
         case signal_Enter:
-        {
             printf("\t Enter Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Exit:
-        {
             printf("\t Exit Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Tick:
             printf("\t Tick Signal\n");
-            status = fsm_Handled;
+            HANDLED( this );
             break;
         case signal_TransitionToA0:
-        {
             printf("\t TransitionToA0 Signal\n");
-            status = FSM_Transition( this, SubState_A0 );
-        }
+            TRANSITION( this, SubState_A0 );
             break;
-        case signal_Traverse:
         default:
-        {
-        }
+            PARENT(this, NULL );
             break;
     }
-    return status;
+    return ret;
 }
 
-static fsm_status_t SubState_A0( fsm_t * this, signal s)
+static state_ret_t SubState_A0( fsm_t * this, signal s)
 {
     STATE_PRINT( s );
-    
-    fsm_status_t status = FSM_SuperTransition( this, SuperState_A );
+    state_ret_t ret;
+
     switch( s )
     {
         case signal_Enter:
-        {
             printf("\t Enter Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Exit:
-        {
             printf("\t Exit Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_TransitionToA1:
-        {
             printf("\t TransitionToA1 Signal\n");
-            status = FSM_Transition( this, SubState_A1 );
-        }
+            TRANSITION( this, SubState_A1 );
             break;
         case signal_TransitionToB:
-        {
             printf("\t TransitionToB Signal\n");
-            status = FSM_Transition( this, SuperState_B );
-        }
+            TRANSITION( this, SuperState_B );
             break;
         case signal_TransitionToB0:
-        {
             printf("\t TransitionToB0 Signal\n");
-            status = FSM_Transition( this, SubState_B0 );
-        }
+            TRANSITION( this, SubState_B0 );
             break;
         case signal_TransitionToA0:
-        {
             printf("\t TransitionToA0 Signal\n");
-            status = FSM_Transition( this, SubState_A0 );
-        }
+            TRANSITION( this, SubState_A0 );
             break;
-        case signal_Traverse:
         default:
-        {
-        }
+            PARENT( this, SuperState_A );
             break;
     }
 
-    return status;
+    return ret;
 }
-static fsm_status_t SubState_A1( fsm_t * this, signal s)
+static state_ret_t SubState_A1( fsm_t * this, signal s)
 {
     STATE_PRINT( s );
+    state_ret_t ret;
     
-    fsm_status_t status = FSM_SuperTransition( this, SuperState_A );
     switch( s )
     {
         case signal_Enter:
-        {
             printf("\t Enter Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Exit:
-        {
             printf("\t Exit Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_TransitionToA0:
-        {
             printf("\t TransitionToA0 Signal\n");
-            status = FSM_Transition( this, SubState_A0 );
-        }
+            TRANSITION( this, SubState_A0 );
             break;
-        case signal_Traverse:
         default:
-        {
-        }
+            PARENT( this, SuperState_A );
             break;
     }
 
-    return status;
+    return ret;
 }
-static fsm_status_t SubState_B0( fsm_t * this, signal s)
+static state_ret_t SubState_B0( fsm_t * this, signal s)
 {
     STATE_PRINT( s );
-    fsm_status_t status = FSM_SuperTransition( this, SuperState_B );
+    state_ret_t ret;
+
     switch( s )
     {
         case signal_Enter:
-        {
             printf("\t Enter Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_Exit:
-        {
             printf("\t Exit Signal\n");
-            status = fsm_Handled;
-        }
+            HANDLED( this );
             break;
         case signal_TransitionToA0:
-        {
             printf("\t TransitionToA0 Signal\n");
-            status = FSM_Transition( this, SubState_A0 );
-        }
+            TRANSITION( this, SubState_A0 );
             break;
-        case signal_Traverse:
         default:
-        {
-        }
+            PARENT( this, SuperState_B );
             break;
     }
-    return status;
+    return ret;
 }
 
 int main( void )

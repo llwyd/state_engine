@@ -85,28 +85,20 @@ typedef enum
         STATE_RETURN_CODES
     #undef RETURN
 }
-state_code_t;
+state_ret_t;
 
-#define PARENT( parent_state ) state->state = parent; \ ret = RETURN_ENUM( Unhandled )
-#define TRANSITION( new_state ) state->state = new_state; \ ret = RETURN_ENUM( Transition )
-#define HANDLED() ret = RETURN_ENUM ( Handled )
+#define PARENT( _state, parent_state ) _state->state = parent_state;  ret = RETURN_ENUM( Unhandled )
+#define TRANSITION( _state, new_state ) _state->state = new_state;  ret = RETURN_ENUM( Transition )
+#define HANDLED( _state ) ret = RETURN_ENUM ( Handled )
 
 /* Circular buffer for FSM events. This is declared inside the .c file */
 typedef struct fsm_events_t fsm_events_t;
-
-typedef enum
-{
-    fsm_Handled,
-    fsm_Transition,
-    fsm_SuperTransition,
-    fsm_Ignored,
-} fsm_status_t;
 
 /* Forward declaration so that function pointer with state can return itself */
 typedef struct fsm_t fsm_t;
 
 /* Function pointer that holds the state to execute */
-typedef fsm_status_t ( *state_func_t ) ( fsm_t * this, signal s );
+typedef state_ret_t ( *state_func_t ) ( fsm_t * this, signal s );
 
 struct fsm_t
 {
@@ -119,8 +111,8 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 extern void FSM_HierarchicalDispatch( fsm_t * state, signal s );
 extern void FSM_Dispatch( fsm_t * state, signal s );
 
-extern fsm_status_t FSM_Transition( fsm_t * state, state_func_t f );
-extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func_t f );
+extern state_ret_t FSM_Transition( fsm_t * state, state_func_t f );
+extern state_ret_t FSM_SuperTransition( fsm_t * state, state_func_t f );
 
 /* Event queuing */
 extern void FSM_FlushEvents( fsm_events_t * fsm_event );

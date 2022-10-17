@@ -43,26 +43,12 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
     FSM_Dispatch( state, signal_Enter );
 }
 
-extern fsm_status_t FSM_Transition( fsm_t * state, state_func_t f )
-{
-    STATE_ASSERT( state->state != f );
-    state->state = f;
-    return fsm_Transition;
-}
-
-extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func_t f )
-{
-    STATE_ASSERT( state->state != f );
-    state->state = f;
-    return fsm_SuperTransition;
-}
-
 extern void FSM_Dispatch( fsm_t * state, signal s )
 {
     state_func_t previous = state->state;
-    fsm_status_t status = state->state( state, s );
+    state_ret_t status = state->state( state, s );
 
-    while ( status == fsm_Transition )
+    while ( status == RETURN_ENUM( Transition ) )
     {
         previous( state, signal_Exit );
         previous = state->state;
@@ -84,14 +70,14 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
     path_out[0] = state->state; 
     const state_func_t source = state->state;
 
-    fsm_status_t status = state->state( state, s );
+    state_ret_t status = state->state( state, s );
 
-    while( ( status == fsm_SuperTransition ) && ( state->state != NULL ) )
+    while( ( status == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
     {
         status = state->state( state, s );
     }
 
-    if( status == fsm_Transition )
+    if( status == RETURN_ENUM( Transition ) )
     {
         /* Perform Traversal algorithm */
         STATE_TRAVERSE_START;    
@@ -114,7 +100,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
             state->state = path_in[ in_idx - 1 ];
             if( state->state != NULL )
             {
-                status = state->state( state, signal_Traverse );
+                status = state->state( state, signal_None );
             }
             in = state->state;
             
@@ -126,7 +112,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
                 state->state = path_out[out_idx - 1]; 
                 if( state->state != NULL )
                 {
-                    status = state->state( state, signal_Traverse );
+                    status = state->state( state, signal_None );
                     STATE_ASSERT( out_idx < MAX_NESTED_STATES ); 
                     path_out[ out_idx ] = state->state;
                 }
@@ -155,7 +141,7 @@ transition_path_found:
         {
             state->state = path_out[jdx];
             status = state->state( state, signal_Exit );
-            STATE_ASSERT( status == fsm_Handled );
+            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
         }
 
         /* Enter nested states */
@@ -164,7 +150,7 @@ transition_path_found:
             STATE_ASSERT( idx != 0 );
             state->state = path_in[idx - 1];
             status = state->state( state, signal_Enter );
-            STATE_ASSERT( status == fsm_Handled );
+            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
         }
         
         /* Reassign original state */    
