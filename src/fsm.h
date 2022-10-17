@@ -13,6 +13,10 @@
 #include <stdbool.h>
 
 
+
+
+/* Platform Specific Stuff */
+
 #ifdef TARGET_ARM
 #define STATE_PRINT( SIGNAL )
 
@@ -27,6 +31,8 @@
 
 #elif TARGET_ESP32
 #define STATE_PRINT( SIGNAL )
+#error "Esp32 target not yet supported"
+
 #else
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,21 +51,47 @@
 
 #endif
 
+
+#define DEFAULT_SIGNALS \
+    SIGNAL( None ) \
+    SIGNAL( Enter ) \
+    SIGNAL( Exit ) \
+
+#define STATE_RETURN_CODES \
+    RETURN( None ) \
+    RETURN( Handled ) \
+    RETURN( Unhandled ) \
+    RETURN( Transition ) \
+
+#define SIGNAL_ENUM(x) signal_##x
+#define RETURN_ENUM(x) return_##x
+
 /* Signal to send events to a given state */
 typedef uint32_t signal;
 
 /* Default signals for state machine */
 enum DefaultSignals
 {
-    signal_None,
-    signal_Enter,
-    signal_Exit,
-    signal_Traverse, /* Used to return a state's super state * */
-
-    signal_Count,
+    #define SIGNAL(x) SIGNAL_ENUM(x),
+        DEFAULT_SIGNALS
+    #undef SIGNAL
+    signal_Traverse,  /* To be removed */
+    SIGNAL_ENUM(Count),
 };
 
-/* Circular buffer for FSM events */
+typedef enum
+{
+    #define RETURN(x) RETURN_ENUM(x),
+        STATE_RETURN_CODES
+    #undef RETURN
+}
+state_code_t;
+
+#define PARENT( parent_state ) state->state = parent; \ ret = RETURN_ENUM( Unhandled )
+#define TRANSITION( new_state ) state->state = new_state; \ ret = RETURN_ENUM( Transition )
+#define HANDLED() ret = RETURN_ENUM ( Handled )
+
+/* Circular buffer for FSM events. This is declared inside the .c file */
 typedef struct fsm_events_t fsm_events_t;
 
 typedef enum
@@ -74,11 +106,11 @@ typedef enum
 typedef struct fsm_t fsm_t;
 
 /* Function pointer that holds the state to execute */
-typedef fsm_status_t ( *state_func ) ( fsm_t * this, signal s );
+typedef fsm_status_t ( *state_func_t ) ( fsm_t * this, signal s );
 
 struct fsm_t
 {
-    state_func state;
+    state_func_t state;
 };
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
@@ -87,8 +119,8 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
 extern void FSM_HierarchicalDispatch( fsm_t * state, signal s );
 extern void FSM_Dispatch( fsm_t * state, signal s );
 
-extern fsm_status_t FSM_Transition( fsm_t * state, state_func f );
-extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f );
+extern fsm_status_t FSM_Transition( fsm_t * state, state_func_t f );
+extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func_t f );
 
 /* Event queuing */
 extern void FSM_FlushEvents( fsm_events_t * fsm_event );

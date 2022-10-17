@@ -14,6 +14,12 @@ typedef enum
     fsm_Transition,
 } state_return_t;
 
+#define STATE_RETURN_CODES \
+    X( None ) \
+    X( Handled ) \
+    X( Unhandled ) \
+    X( Transition ) \
+
 #define STATES \
     X( A, ROOT ) \
     X( B, ROOT ) \
@@ -23,6 +29,7 @@ typedef enum
     X( A00, A0 ) \
 
 #define SIGNALS \
+    X( None ) \
     X( Entry ) \
     X( Exit ) \
     X( Tick ) \

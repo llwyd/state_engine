@@ -9,14 +9,14 @@
 #include "fsm.h"
 
 #ifdef TARGET_ARM
-    #define ENTER_CRITICAL { asm("CPSID IF"); }
-    #define EXIT_CRITICAL  { asm("CPSIE IF"); }
+    #define __ENTER_CRITICAL { asm("CPSID IF"); }
+    #define __EXIT_CRITICAL  { asm("CPSIE IF"); }
 #elif TARGET_ESP32
-    #define ENTER_CRITICAL {  }
-    #define EXIT_CRITICAL  {  }
+    #define __ENTER_CRITICAL {  }
+    #define __EXIT_CRITICAL  {  }
 #else
-    #define ENTER_CRITICAL {  }
-    #define EXIT_CRITICAL  {  }
+    #define __ENTER_CRITICAL {  }
+    #define __EXIT_CRITICAL  {  }
 #endif
 
 #define BUFFER_SIZE ( 32U )
@@ -34,21 +34,23 @@ struct fsm_events_t
 
 extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
 {
+    __ENTER_CRITICAL;
     fsm_event->read_index = 0U;
     fsm_event->write_index = 0U;
     fsm_event->fill = 0U;
+    __EXIT_CRITICAL;
 
     FSM_Dispatch( state, signal_Enter );
 }
 
-extern fsm_status_t FSM_Transition( fsm_t * state, state_func f )
+extern fsm_status_t FSM_Transition( fsm_t * state, state_func_t f )
 {
     STATE_ASSERT( state->state != f );
     state->state = f;
     return fsm_Transition;
 }
 
-extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f )
+extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func_t f )
 {
     STATE_ASSERT( state->state != f );
     state->state = f;
@@ -57,7 +59,7 @@ extern fsm_status_t FSM_SuperTransition( fsm_t * state, state_func f )
 
 extern void FSM_Dispatch( fsm_t * state, signal s )
 {
-    state_func previous = state->state;
+    state_func_t previous = state->state;
     fsm_status_t status = state->state( state, s );
 
     while ( status == fsm_Transition )
@@ -75,12 +77,12 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
     STATE_DISPATCH_START;
 
     /* These hold the history up and down the state tree */
-    state_func path_out[ MAX_NESTED_STATES ];
-    state_func path_in[ MAX_NESTED_STATES ];
+    state_func_t path_out[ MAX_NESTED_STATES ];
+    state_func_t path_in[ MAX_NESTED_STATES ];
 
     /* Always guaranteed to execute the first state */
     path_out[0] = state->state; 
-    const state_func source = state->state;
+    const state_func_t source = state->state;
 
     fsm_status_t status = state->state( state, s );
 
@@ -96,7 +98,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
 
         /* Store the target state */
         path_in[0] = state->state;
-        const state_func target = state->state; 
+        const state_func_t target = state->state; 
 
         /* Begin traversal by moving source and target up a super state */
         bool found_path = false;
@@ -108,7 +110,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
         uint32_t out_idx = 0;
         for( in_idx = 1; in_idx < in_max_nested; in_idx++ )
         {
-            state_func in;
+            state_func_t in;
             state->state = path_in[ in_idx - 1 ];
             if( state->state != NULL )
             {
@@ -185,10 +187,10 @@ extern void FSM_FlushEvents( fsm_events_t * fsm_event )
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill > 0U )
     {
-        ENTER_CRITICAL;
+        __ENTER_CRITICAL;
         fsm_event->read_index = fsm_event->write_index;
         fsm_event->fill = 0U;
-        EXIT_CRITICAL;
+        __EXIT_CRITICAL;
     }
 }
 
@@ -197,11 +199,11 @@ extern void FSM_AddEvent( fsm_events_t * fsm_event, signal s )
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill < BUFFER_SIZE )
     {
-        ENTER_CRITICAL;
+        __ENTER_CRITICAL;
         fsm_event->event[ fsm_event->write_index++ ] = s;
         fsm_event->fill++;
         fsm_event->write_index = ( fsm_event->write_index & ( BUFFER_SIZE - 1U ) );
-        EXIT_CRITICAL;
+        __EXIT_CRITICAL;
     }
 }
 
@@ -216,11 +218,11 @@ extern signal FSM_GetLatestEvent( fsm_events_t * fsm_event )
     signal s;
     STATE_ASSERT( fsm_event != NULL );
 
-    ENTER_CRITICAL;
+    __ENTER_CRITICAL;
     s = fsm_event->event[ fsm_event->read_index++ ];
     fsm_event->fill--;
     fsm_event->read_index = ( fsm_event->read_index & ( BUFFER_SIZE - 1U ) );
-    EXIT_CRITICAL;
+    __EXIT_CRITICAL;
 
     return s;
 }
