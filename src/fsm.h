@@ -52,6 +52,7 @@
 #endif
 
 
+
 #define DEFAULT_SIGNALS \
     SIGNAL( None ) \
     SIGNAL( Enter ) \
@@ -75,8 +76,7 @@ enum DefaultSignals
     #define SIGNAL(x) SIGNAL_ENUM(x),
         DEFAULT_SIGNALS
     #undef SIGNAL
-    signal_Traverse,  /* To be removed */
-    SIGNAL_ENUM(Count),
+    SIGNAL_ENUM(DefaultCount),
 };
 
 typedef enum

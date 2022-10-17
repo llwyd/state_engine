@@ -12,16 +12,20 @@ static state_ret_t SubState_A0( fsm_t * this, signal s);
 static state_ret_t SubState_A1( fsm_t * this, signal s);
 static state_ret_t SubState_B0( fsm_t * this, signal s);
 
+#define SIGNALS \
+    SIG( TransitionToA ) \
+    SIG( TransitionToB ) \
+    SIG( TransitionToA0 ) \
+    SIG( TransitionToA1 ) \
+    SIG( TransitionToB0 ) \
+
 enum Signals
 {
-    signal_Tick = signal_Count,
-    signal_TransitionToA,
-    signal_TransitionToB,
-    signal_TransitionToA0,
-    signal_TransitionToA1,
-    signal_TransitionToB0,
+    SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ),
+    #define SIG(x) SIGNAL_ENUM(x),
+        SIGNALS
+    #undef SIG
 };
-
 
 static state_ret_t SuperState_A( fsm_t * this, signal s)
 {
@@ -42,7 +46,6 @@ static state_ret_t SuperState_A( fsm_t * this, signal s)
             printf("\t Tick Signal\n");
             HANDLED( this );
             break;
-        case signal_Traverse:
         default:
         {
             PARENT( this, NULL );
