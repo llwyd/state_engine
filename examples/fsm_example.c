@@ -19,24 +19,22 @@ static state_ret_t SubState_B0( fsm_t * this, signal s);
     SIG( TransitionToB0 ) \
 
 GENERATE_SIGNALS( SIGNALS );
+GENERATE_SIGNAL_STRINGS( SIGNALS );
 
 static state_ret_t SuperState_A( fsm_t * this, signal s)
 {
-    STATE_PRINT( s );
+    STATE_DEBUG( s );
     state_ret_t ret;
 
     switch( s )
     {
-        case signal_Enter:
-            printf("\t Enter Signal\n");
+        case EVENT(Enter):
             HANDLED( this );
             break;
-        case signal_Exit:
-            printf("\t Exit Signal\n");
+        case EVENT(Exit):
             HANDLED( this );
             break;
-        case signal_Tick:
-            printf("\t Tick Signal\n");
+        case EVENT(Tick):
             HANDLED( this );
             break;
         default:
@@ -51,25 +49,21 @@ static state_ret_t SuperState_A( fsm_t * this, signal s)
 
 static state_ret_t SuperState_B( fsm_t * this, signal s)
 {
-    STATE_PRINT( s );
+    STATE_DEBUG( s );
     state_ret_t ret;
     
     switch( s )
     {
-        case signal_Enter:
-            printf("\t Enter Signal\n");
+        case EVENT(Enter):
             HANDLED( this );
             break;
-        case signal_Exit:
-            printf("\t Exit Signal\n");
+        case EVENT(Exit):
             HANDLED( this );
             break;
-        case signal_Tick:
-            printf("\t Tick Signal\n");
+        case EVENT(Tick):
             HANDLED( this );
             break;
-        case signal_TransitionToA0:
-            printf("\t TransitionToA0 Signal\n");
+        case EVENT(TransitionToA0):
             TRANSITION( this, SubState_A0 );
             break;
         default:
@@ -81,33 +75,27 @@ static state_ret_t SuperState_B( fsm_t * this, signal s)
 
 static state_ret_t SubState_A0( fsm_t * this, signal s)
 {
-    STATE_PRINT( s );
+    STATE_DEBUG( s );
     state_ret_t ret;
 
     switch( s )
     {
-        case signal_Enter:
-            printf("\t Enter Signal\n");
+        case EVENT(Enter):
             HANDLED( this );
             break;
-        case signal_Exit:
-            printf("\t Exit Signal\n");
+        case EVENT(Exit):
             HANDLED( this );
             break;
-        case signal_TransitionToA1:
-            printf("\t TransitionToA1 Signal\n");
+        case EVENT(TransitionToA1):
             TRANSITION( this, SubState_A1 );
             break;
-        case signal_TransitionToB:
-            printf("\t TransitionToB Signal\n");
+        case EVENT(TransitionToB):
             TRANSITION( this, SuperState_B );
             break;
-        case signal_TransitionToB0:
-            printf("\t TransitionToB0 Signal\n");
+        case EVENT(TransitionToB0):
             TRANSITION( this, SubState_B0 );
             break;
-        case signal_TransitionToA0:
-            printf("\t TransitionToA0 Signal\n");
+        case EVENT(TransitionToA0):
             TRANSITION( this, SubState_A0 );
             break;
         default:
@@ -119,21 +107,18 @@ static state_ret_t SubState_A0( fsm_t * this, signal s)
 }
 static state_ret_t SubState_A1( fsm_t * this, signal s)
 {
-    STATE_PRINT( s );
+    STATE_DEBUG( s );
     state_ret_t ret;
     
     switch( s )
     {
-        case signal_Enter:
-            printf("\t Enter Signal\n");
+        case EVENT(Enter):
             HANDLED( this );
             break;
-        case signal_Exit:
-            printf("\t Exit Signal\n");
+        case EVENT(Exit):
             HANDLED( this );
             break;
-        case signal_TransitionToA0:
-            printf("\t TransitionToA0 Signal\n");
+        case EVENT(TransitionToA0):
             TRANSITION( this, SubState_A0 );
             break;
         default:
@@ -145,21 +130,18 @@ static state_ret_t SubState_A1( fsm_t * this, signal s)
 }
 static state_ret_t SubState_B0( fsm_t * this, signal s)
 {
-    STATE_PRINT( s );
+    STATE_DEBUG( s );
     state_ret_t ret;
 
     switch( s )
     {
-        case signal_Enter:
-            printf("\t Enter Signal\n");
+        case EVENT(Enter):
             HANDLED( this );
             break;
-        case signal_Exit:
-            printf("\t Exit Signal\n");
+        case EVENT(Exit):
             HANDLED( this );
             break;
-        case signal_TransitionToA0:
-            printf("\t TransitionToA0 Signal\n");
+        case EVENT(TransitionToA0):
             TRANSITION( this, SubState_A0 );
             break;
         default:
@@ -175,16 +157,16 @@ int main( void )
 
     state_machine.state = SubState_A0;
 
-    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToB );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA1 );
-    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToB0 );
-    FSM_HierarchicalDispatch( &state_machine, signal_Tick );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
-    FSM_HierarchicalDispatch( &state_machine, signal_TransitionToA0 );
+    FSM_HierarchicalDispatch( &state_machine, EVENT(Tick ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0 ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA1 ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(Tick ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0 ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB0 ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(Tick ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0 ));
+    FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0 ));
 
     return 0;
 }

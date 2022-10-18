@@ -12,7 +12,52 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/* Global Settings */
+#define STATE_ASSERT_ENABLE == false
+#define STATE_DEBUG_ENABLE == false
 
+/* Core State Machine Defines and helper macros */
+#define DEFAULT_SIGNALS(SIGNAL) \
+    SIGNAL( None ) \
+    SIGNAL( Enter ) \
+    SIGNAL( Exit ) \
+
+#define STATE_RETURN_CODES \
+    RETURN( None ) \
+    RETURN( Handled ) \
+    RETURN( Unhandled ) \
+    RETURN( Transition ) \
+
+#define SIGNAL_ENUM(x) signal_##x,
+#define _SIGNAL_ENUM(x) signal_##x
+#define RETURN_ENUM(x) return_##x
+#define EVENT(x) _SIGNAL_ENUM(x)
+
+#define _SIGNAL_STR(x) #x
+#define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
+
+
+#define GENERATE_SIGNALS( SIG ) \
+    enum Signal \
+    { \
+        _SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ) \
+        SIG( SIGNAL_ENUM ) \
+    }
+
+#define GENERATE_SIGNAL_STRINGS( SIG ) \
+    static const char *_signal_str[] = \
+    { \
+        DEFAULT_SIGNALS( _SIGNAL_LOOKUP ) \
+        _SIGNAL_LOOKUP( Tick ) \
+        SIG( _SIGNAL_LOOKUP ) \
+    } \
+
+#define STATE_DEBUG( x ) printf("%s -> %s Signal\n", __func__, _signal_str[x] )
+
+
+#define PARENT( _state, parent_state ) _state->state = parent_state;  ret = RETURN_ENUM( Unhandled )
+#define TRANSITION( _state, new_state ) _state->state = new_state;  ret = RETURN_ENUM( Transition )
+#define HANDLED( _state ) ret = RETURN_ENUM ( Handled )
 
 
 /* Platform Specific Stuff */
@@ -51,32 +96,13 @@
 
 #endif
 
-
-
-#define DEFAULT_SIGNALS \
-    SIGNAL( None ) \
-    SIGNAL( Enter ) \
-    SIGNAL( Exit ) \
-
-#define STATE_RETURN_CODES \
-    RETURN( None ) \
-    RETURN( Handled ) \
-    RETURN( Unhandled ) \
-    RETURN( Transition ) \
-
-#define SIGNAL_ENUM(x) signal_##x,
-#define _SIGNAL_ENUM(x) signal_##x
-#define RETURN_ENUM(x) return_##x
-
 /* Signal to send events to a given state */
 typedef uint32_t signal;
 
 /* Default signals for state machine */
 enum DefaultSignals
 {
-    #define SIGNAL(x) SIGNAL_ENUM(x)
-        DEFAULT_SIGNALS
-    #undef SIGNAL
+    DEFAULT_SIGNALS(SIGNAL_ENUM)
     SIGNAL_ENUM(DefaultCount)
 };
 
@@ -87,18 +113,6 @@ typedef enum
     #undef RETURN
 }
 state_ret_t;
-
-#define GENERATE_SIGNALS( SIG ) \
-    enum Signal \
-    { \
-        _SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ) \
-        SIG( SIGNAL_ENUM ) \
-    }
-
-
-#define PARENT( _state, parent_state ) _state->state = parent_state;  ret = RETURN_ENUM( Unhandled )
-#define TRANSITION( _state, new_state ) _state->state = new_state;  ret = RETURN_ENUM( Transition )
-#define HANDLED( _state ) ret = RETURN_ENUM ( Handled )
 
 /* Circular buffer for FSM events. This is declared inside the .c file */
 typedef struct fsm_events_t fsm_events_t;
