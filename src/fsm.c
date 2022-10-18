@@ -11,18 +11,42 @@
 #ifdef TARGET_ARM
     #define __ENTER_CRITICAL { asm("CPSID IF"); }
     #define __EXIT_CRITICAL  { asm("CPSIE IF"); }
+#define _ASSERT( c ) \
+    { \
+        if ( !(c) ) \
+        { \
+            asm("CPSID IF"); \
+            while(1); \
+        } \
+    } 
+
 #elif TARGET_ESP32
     #define __ENTER_CRITICAL {  }
     #define __EXIT_CRITICAL  {  }
 #else
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <assert.h>
+    
     #define __ENTER_CRITICAL {  }
     #define __EXIT_CRITICAL  {  }
+    #define STATE_DISPATCH_START printf("[FSM]: Dispatching Event Start\n");
+    #define STATE_DISPATCH_END printf("[FSM]: Dispatching Event End\n");
+
+    #define STATE_TRAVERSE_START printf("[FSM]: Traversing States Start\n");
+    #define STATE_TRAVERSE_END printf("[FSM]: Traversing States End\n");
+
+    #define _ASSERT( c ) \
+    { \
+        assert( (c) ); \
+    } 
 #endif
 
 #define BUFFER_SIZE ( 32U )
 #define MAX_NESTED_STATES ( 3 )
 
 _Static_assert( MAX_NESTED_STATES > 0U );
+_Static_assert( BUFFER_SIZE > 0U );
 
 struct fsm_events_t
 {
@@ -48,6 +72,8 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
     state_func_t previous = state->state;
     state_ret_t status = state->state( state, s );
 
+    _ASSERT( status != RETURN_ENUM( Unhandled ) );
+
     while ( status == RETURN_ENUM( Transition ) )
     {
         previous( state, signal_Exit );
@@ -58,8 +84,9 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
 
 extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
 {
-    STATE_ASSERT( state->state != NULL );
-    STATE_ASSERT( state != NULL );
+    _ASSERT( state->state != NULL );
+    _ASSERT( state != NULL );
+    _ASSERT( s != _SIGNAL_ENUM( None ) );
     STATE_DISPATCH_START;
 
     /* These hold the history up and down the state tree */
@@ -104,7 +131,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
             }
             in = state->state;
             
-            STATE_ASSERT( in_idx < MAX_NESTED_STATES ); 
+            _ASSERT( in_idx < MAX_NESTED_STATES ); 
             path_in[ in_idx ] = in;
             
             for( out_idx = 1; out_idx < out_max_nested; out_idx++ )
@@ -113,7 +140,7 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
                 if( state->state != NULL )
                 {
                     status = state->state( state, signal_None );
-                    STATE_ASSERT( out_idx < MAX_NESTED_STATES ); 
+                    _ASSERT( out_idx < MAX_NESTED_STATES ); 
                     path_out[ out_idx ] = state->state;
                 }
                 else
@@ -134,23 +161,23 @@ extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
         }
 
 transition_path_found:
-        STATE_ASSERT( found_path );
+        _ASSERT( found_path );
         
         /* Exit nested states */
         for( uint32_t jdx = 0; jdx < out_idx; jdx++ )
         {
             state->state = path_out[jdx];
             status = state->state( state, signal_Exit );
-            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
+            _ASSERT( status == RETURN_ENUM( Handled ) );
         }
 
         /* Enter nested states */
         for( uint32_t idx = in_idx; idx > 0; idx-- )
         {
-            STATE_ASSERT( idx != 0 );
+            _ASSERT( idx != 0 );
             state->state = path_in[idx - 1];
             status = state->state( state, signal_Enter );
-            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
+            _ASSERT( status == RETURN_ENUM( Handled ) );
         }
         
         /* Reassign original state */    
@@ -168,9 +195,9 @@ transition_path_found:
 }
 
 
-extern void FSM_FlushEvents( fsm_events_t * fsm_event )
+extern void FSM_FlushEvents( fsm_events_t * const fsm_event )
 {
-    STATE_ASSERT( fsm_event != NULL );
+    _ASSERT( fsm_event != NULL );
     if( fsm_event->fill > 0U )
     {
         __ENTER_CRITICAL;
@@ -180,9 +207,9 @@ extern void FSM_FlushEvents( fsm_events_t * fsm_event )
     }
 }
 
-extern void FSM_AddEvent( fsm_events_t * fsm_event, signal s )
+extern void FSM_AddEvent( fsm_events_t * const fsm_event, signal s )
 {
-    STATE_ASSERT( fsm_event != NULL );
+    _ASSERT( fsm_event != NULL );
     if( fsm_event->fill < BUFFER_SIZE )
     {
         __ENTER_CRITICAL;
@@ -193,21 +220,24 @@ extern void FSM_AddEvent( fsm_events_t * fsm_event, signal s )
     }
 }
 
-extern bool FSM_EventsAvailable( fsm_events_t * fsm_event )
+extern bool FSM_EventsAvailable( const fsm_events_t * const fsm_event )
 {
-    STATE_ASSERT( fsm_event != NULL );
+    _ASSERT( fsm_event != NULL );
     return ( fsm_event->fill > 0U );
 }
 
-extern signal FSM_GetLatestEvent( fsm_events_t * fsm_event )
+extern signal FSM_GetLatestEvent( fsm_events_t * const fsm_event )
 {
     signal s;
-    STATE_ASSERT( fsm_event != NULL );
+    _ASSERT( fsm_event != NULL );
 
     __ENTER_CRITICAL;
-    s = fsm_event->event[ fsm_event->read_index++ ];
-    fsm_event->fill--;
-    fsm_event->read_index = ( fsm_event->read_index & ( BUFFER_SIZE - 1U ) );
+    if( fsm_event->fill > 0U )
+    {
+        s = fsm_event->event[ fsm_event->read_index++ ];
+        fsm_event->fill--;
+        fsm_event->read_index = ( fsm_event->read_index & ( BUFFER_SIZE - 1U ) );
+    }
     __EXIT_CRITICAL;
 
     return s;
