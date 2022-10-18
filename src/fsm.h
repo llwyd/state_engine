@@ -32,6 +32,7 @@
 #define _SIGNAL_ENUM(x) signal_##x
 #define RETURN_ENUM(x) return_##x
 #define EVENT(x) _SIGNAL_ENUM(x)
+#define STATE(x) State_##x
 
 #define _SIGNAL_STR(x) #x
 #define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
@@ -55,9 +56,10 @@
 #define STATE_DEBUG( x ) printf("%s -> %s Signal\n", __func__, _signal_str[x] )
 
 
-#define PARENT( _state, parent_state ) _state->state = parent_state;  ret = RETURN_ENUM( Unhandled )
-#define TRANSITION( _state, new_state ) _state->state = new_state;  ret = RETURN_ENUM( Transition )
+#define PARENT( _state, parent_state ) _state->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
+#define TRANSITION( _state, new_state ) _state->state = STATE(new_state);  ret = RETURN_ENUM( Transition )
 #define HANDLED( _state ) ret = RETURN_ENUM ( Handled )
+#define NO_PARENT( _state ) _state->state = NULL; ret = RETURN_ENUM( Unhandled )
 
 
 /* Platform Specific Stuff */

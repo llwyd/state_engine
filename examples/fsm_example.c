@@ -3,13 +3,13 @@
 #include "../src/fsm.h"
 
 /* Super States */
-static state_ret_t SuperState_A( fsm_t * this, signal s);
-static state_ret_t SuperState_B( fsm_t * this, signal s);
+static state_ret_t State_A( fsm_t * this, signal s);
+static state_ret_t State_B( fsm_t * this, signal s);
 
-/* SubStates */
-static state_ret_t SubState_A0( fsm_t * this, signal s);
-static state_ret_t SubState_A1( fsm_t * this, signal s);
-static state_ret_t SubState_B0( fsm_t * this, signal s);
+/* States */
+static state_ret_t State_A0( fsm_t * this, signal s);
+static state_ret_t State_A1( fsm_t * this, signal s);
+static state_ret_t State_B0( fsm_t * this, signal s);
 
 #define SIGNALS(SIG) \
     SIG( TransitionToA ) \
@@ -21,7 +21,7 @@ static state_ret_t SubState_B0( fsm_t * this, signal s);
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
 
-static state_ret_t SuperState_A( fsm_t * this, signal s)
+static state_ret_t State_A( fsm_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -39,7 +39,7 @@ static state_ret_t SuperState_A( fsm_t * this, signal s)
             break;
         default:
         {
-            PARENT( this, NULL );
+            NO_PARENT( this );
             break;
         }
     }
@@ -47,7 +47,7 @@ static state_ret_t SuperState_A( fsm_t * this, signal s)
     return ret;
 }
 
-static state_ret_t SuperState_B( fsm_t * this, signal s)
+static state_ret_t State_B( fsm_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -64,16 +64,16 @@ static state_ret_t SuperState_B( fsm_t * this, signal s)
             HANDLED( this );
             break;
         case EVENT(TransitionToA0):
-            TRANSITION( this, SubState_A0 );
+            TRANSITION( this, A0 );
             break;
         default:
-            PARENT(this, NULL );
+            NO_PARENT(this);
             break;
     }
     return ret;
 }
 
-static state_ret_t SubState_A0( fsm_t * this, signal s)
+static state_ret_t State_A0( fsm_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -87,25 +87,25 @@ static state_ret_t SubState_A0( fsm_t * this, signal s)
             HANDLED( this );
             break;
         case EVENT(TransitionToA1):
-            TRANSITION( this, SubState_A1 );
+            TRANSITION( this, A1 );
             break;
         case EVENT(TransitionToB):
-            TRANSITION( this, SuperState_B );
+            TRANSITION( this, B );
             break;
         case EVENT(TransitionToB0):
-            TRANSITION( this, SubState_B0 );
+            TRANSITION( this, B0 );
             break;
         case EVENT(TransitionToA0):
-            TRANSITION( this, SubState_A0 );
+            TRANSITION( this, A0 );
             break;
         default:
-            PARENT( this, SuperState_A );
+            PARENT( this, A );
             break;
     }
 
     return ret;
 }
-static state_ret_t SubState_A1( fsm_t * this, signal s)
+static state_ret_t State_A1( fsm_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -119,16 +119,16 @@ static state_ret_t SubState_A1( fsm_t * this, signal s)
             HANDLED( this );
             break;
         case EVENT(TransitionToA0):
-            TRANSITION( this, SubState_A0 );
+            TRANSITION( this, A0 );
             break;
         default:
-            PARENT( this, SuperState_A );
+            PARENT( this, A );
             break;
     }
 
     return ret;
 }
-static state_ret_t SubState_B0( fsm_t * this, signal s)
+static state_ret_t State_B0( fsm_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -142,10 +142,10 @@ static state_ret_t SubState_B0( fsm_t * this, signal s)
             HANDLED( this );
             break;
         case EVENT(TransitionToA0):
-            TRANSITION( this, SubState_A0 );
+            TRANSITION( this, A0 );
             break;
         default:
-            PARENT( this, SuperState_B );
+            PARENT( this, B );
             break;
     }
     return ret;
@@ -155,7 +155,7 @@ int main( void )
 {
     fsm_t state_machine;
 
-    state_machine.state = SubState_A0;
+    state_machine.state = STATE( A0 );
 
     FSM_HierarchicalDispatch( &state_machine, EVENT(Tick ));
     FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB ));
