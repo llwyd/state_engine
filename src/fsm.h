@@ -61,10 +61,10 @@
 #define STATE_DEBUG( x ) printf("%s -> %s Signal\n", __func__, _signal_str[x] )
 
 
-#define PARENT( _state, parent_state ) _state->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
-#define TRANSITION( _state, new_state ) _state->state = STATE(new_state);  ret = RETURN_ENUM( Transition )
-#define HANDLED( _state ) ret = RETURN_ENUM ( Handled )
-#define NO_PARENT( _state ) _state->state = NULL; ret = RETURN_ENUM( Unhandled )
+#define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
+#define TRANSITION( new_state ) this->state = STATE(new_state);  ret = RETURN_ENUM( Transition )
+#define HANDLED() ret = RETURN_ENUM ( Handled )
+#define NO_PARENT() this->state = NULL; ret = RETURN_ENUM( Unhandled )
 
 
 /* Platform Specific Stuff */
