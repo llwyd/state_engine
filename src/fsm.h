@@ -95,21 +95,21 @@ state_ret_t;
 typedef struct fsm_events_t fsm_events_t;
 
 /* Forward declaration so that function pointer with state can return itself */
-typedef struct fsm_t fsm_t;
+typedef struct state_t state_t;
 
 /* Function pointer that holds the state to execute */
-typedef state_ret_t ( *state_func_t ) ( fsm_t * this, signal s );
+typedef state_ret_t ( *state_func_t ) ( state_t * this, signal s );
 
-struct fsm_t
+struct state_t
 {
     state_func_t state;
 };
 
-extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event );
+extern void FSM_Init( state_t * state, fsm_events_t * fsm_event );
 
 /* Event Dispatchers */
-extern void FSM_HierarchicalDispatch( fsm_t * state, signal s );
-extern void FSM_Dispatch( fsm_t * state, signal s );
+extern void FSM_HierarchicalDispatch( state_t * state, signal s );
+extern void FSM_Dispatch( state_t * state, signal s );
 
 /* Event queuing */
 extern void FSM_FlushEvents( fsm_events_t * const fsm_event );

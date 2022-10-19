@@ -3,13 +3,13 @@
 #include "../src/fsm.h"
 
 /* Super States */
-static state_ret_t State_A( fsm_t * this, signal s);
-static state_ret_t State_B( fsm_t * this, signal s);
+static state_ret_t State_A( state_t * this, signal s);
+static state_ret_t State_B( state_t * this, signal s);
 
 /* States */
-static state_ret_t State_A0( fsm_t * this, signal s);
-static state_ret_t State_A1( fsm_t * this, signal s);
-static state_ret_t State_B0( fsm_t * this, signal s);
+static state_ret_t State_A0( state_t * this, signal s);
+static state_ret_t State_A1( state_t * this, signal s);
+static state_ret_t State_B0( state_t * this, signal s);
 
 #define SIGNALS(SIG) \
     SIG( TransitionToA ) \
@@ -21,7 +21,7 @@ static state_ret_t State_B0( fsm_t * this, signal s);
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
 
-static state_ret_t State_A( fsm_t * this, signal s)
+static state_ret_t State_A( state_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -47,7 +47,7 @@ static state_ret_t State_A( fsm_t * this, signal s)
     return ret;
 }
 
-static state_ret_t State_B( fsm_t * this, signal s)
+static state_ret_t State_B( state_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -73,7 +73,7 @@ static state_ret_t State_B( fsm_t * this, signal s)
     return ret;
 }
 
-static state_ret_t State_A0( fsm_t * this, signal s)
+static state_ret_t State_A0( state_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -105,7 +105,7 @@ static state_ret_t State_A0( fsm_t * this, signal s)
 
     return ret;
 }
-static state_ret_t State_A1( fsm_t * this, signal s)
+static state_ret_t State_A1( state_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -128,7 +128,7 @@ static state_ret_t State_A1( fsm_t * this, signal s)
 
     return ret;
 }
-static state_ret_t State_B0( fsm_t * this, signal s)
+static state_ret_t State_B0( state_t * this, signal s)
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -153,7 +153,7 @@ static state_ret_t State_B0( fsm_t * this, signal s)
 
 int main( void )
 {
-    fsm_t state_machine;
+    state_t state_machine;
 
     state_machine.state = STATE( A0 );
 

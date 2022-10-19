@@ -56,7 +56,7 @@ struct fsm_events_t
     signal event[ BUFFER_SIZE ];
 };
 
-extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
+extern void FSM_Init( state_t * state, fsm_events_t * fsm_event )
 {
     __ENTER_CRITICAL;
     fsm_event->read_index = 0U;
@@ -67,7 +67,7 @@ extern void FSM_Init( fsm_t * state, fsm_events_t * fsm_event )
     FSM_Dispatch( state, signal_Enter );
 }
 
-extern void FSM_Dispatch( fsm_t * state, signal s )
+extern void FSM_Dispatch( state_t * state, signal s )
 {
     state_func_t previous = state->state;
     state_ret_t status = state->state( state, s );
@@ -82,7 +82,7 @@ extern void FSM_Dispatch( fsm_t * state, signal s )
     }
 }
 
-extern void FSM_HierarchicalDispatch( fsm_t * state, signal s )
+extern void FSM_HierarchicalDispatch( state_t * state, signal s )
 {
     _ASSERT( state->state != NULL );
     _ASSERT( state != NULL );
