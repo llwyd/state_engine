@@ -2,14 +2,6 @@
 #include <stdio.h>
 #include "../src/fsm.h"
 
-/* Super States */
-static state_ret_t State_A( state_t * this, signal s);
-static state_ret_t State_B( state_t * this, signal s);
-
-/* States */
-static state_ret_t State_A0( state_t * this, signal s);
-static state_ret_t State_A1( state_t * this, signal s);
-static state_ret_t State_B0( state_t * this, signal s);
 
 #define SIGNALS(SIG) \
     SIG( TransitionToA ) \
@@ -18,8 +10,17 @@ static state_ret_t State_B0( state_t * this, signal s);
     SIG( TransitionToA1 ) \
     SIG( TransitionToB0 ) \
 
+#define STATES(ST) \
+    ST( A ) \
+    ST( B ) \
+    ST( A0 ) \
+    ST( A1 ) \
+    ST( B0 ) \
+    
+
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
+GENERATE_STATE_PROTOTYPES( STATES );
 
 static state_ret_t State_A( state_t * this, signal s)
 {
@@ -105,7 +106,8 @@ static state_ret_t State_A0( state_t * this, signal s)
 
     return ret;
 }
-static state_ret_t State_A1( state_t * this, signal s)
+
+static state_ret_t State_A1( state_t * this, signal s )
 {
     STATE_DEBUG( s );
     state_ret_t ret;
@@ -128,6 +130,7 @@ static state_ret_t State_A1( state_t * this, signal s)
 
     return ret;
 }
+
 static state_ret_t State_B0( state_t * this, signal s)
 {
     STATE_DEBUG( s );

@@ -32,11 +32,12 @@
 #define _SIGNAL_ENUM(x) signal_##x
 #define RETURN_ENUM(x) return_##x
 #define EVENT(x) _SIGNAL_ENUM(x)
+
 #define STATE(x) State_##x
+#define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, signal s );
 
 #define _SIGNAL_STR(x) #x
 #define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
-
 
 #define GENERATE_SIGNALS( SIG ) \
     enum Signal \
@@ -52,6 +53,10 @@
         _SIGNAL_LOOKUP( Tick ) \
         SIG( _SIGNAL_LOOKUP ) \
     } \
+
+#define GENERATE_STATE_PROTOTYPES( ST ) \
+    ST( _STATE_PROTOTYPE ) \
+
 
 #define STATE_DEBUG( x ) printf("%s -> %s Signal\n", __func__, _signal_str[x] )
 
