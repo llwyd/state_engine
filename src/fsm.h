@@ -28,13 +28,13 @@
     RETURN( Unhandled ) \
     RETURN( Transition ) \
 
-#define SIGNAL_ENUM(x) signal_##x,
-#define _SIGNAL_ENUM(x) signal_##x
+#define SIGNAL_ENUM(x) event_##x,
+#define _SIGNAL_ENUM(x) event_##x
 #define RETURN_ENUM(x) return_##x
 #define EVENT(x) _SIGNAL_ENUM(x)
 
 #define STATE(x) State_##x
-#define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, signal s );
+#define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
 
 #define _SIGNAL_STR(x) #x
 #define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
@@ -47,7 +47,7 @@
     }
 
 #define GENERATE_SIGNAL_STRINGS( SIG ) \
-    static const char *_signal_str[] = \
+    static const char *event_str[] = \
     { \
         DEFAULT_SIGNALS( _SIGNAL_LOOKUP ) \
         _SIGNAL_LOOKUP( Tick ) \
@@ -58,7 +58,7 @@
     ST( _STATE_PROTOTYPE ) \
 
 
-#define STATE_DEBUG( x ) printf("%s -> %s Signal\n", __func__, _signal_str[x] )
+#define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
 
 
 #define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
@@ -79,9 +79,9 @@
 #endif
 
 /* Signal to send events to a given state */
-typedef uint32_t signal;
+typedef uint32_t event_t;
 
-/* Default signals for state machine */
+/* Default events for state machine */
 enum DefaultSignals
 {
     DEFAULT_SIGNALS(SIGNAL_ENUM)
@@ -103,7 +103,7 @@ typedef struct fsm_events_t fsm_events_t;
 typedef struct state_t state_t;
 
 /* Function pointer that holds the state to execute */
-typedef state_ret_t ( *state_func_t ) ( state_t * this, signal s );
+typedef state_ret_t ( *state_func_t ) ( state_t * this, event_t s );
 
 struct state_t
 {
@@ -113,13 +113,13 @@ struct state_t
 extern void FSM_Init( state_t * state, fsm_events_t * fsm_event );
 
 /* Event Dispatchers */
-extern void FSM_HierarchicalDispatch( state_t * state, signal s );
-extern void FSM_Dispatch( state_t * state, signal s );
+extern void FSM_HierarchicalDispatch( state_t * state, event_t s );
+extern void FSM_Dispatch( state_t * state, event_t s );
 
 /* Event queuing */
 extern void FSM_FlushEvents( fsm_events_t * const fsm_event );
-extern void FSM_AddEvent( fsm_events_t * const fsm_event, signal s);
-extern signal FSM_GetLatestEvent( fsm_events_t * const fsm_event );
+extern void FSM_AddEvent( fsm_events_t * const fsm_event, event_t s);
+extern event_t FSM_GetLatestEvent( fsm_events_t * const fsm_event );
 extern bool FSM_EventsAvailable( const fsm_events_t * const fsm_event );
 
 #endif /* _FSM_H_ */

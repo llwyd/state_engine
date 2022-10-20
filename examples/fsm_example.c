@@ -22,7 +22,7 @@ GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
 
-static state_ret_t State_A( state_t * this, signal s)
+static state_ret_t State_A( state_t * this, event_t s)
 {
   STATE_DEBUG( s );
   state_ret_t ret;
@@ -48,7 +48,7 @@ static state_ret_t State_A( state_t * this, signal s)
   return ret;
 }
 
-static state_ret_t State_B( state_t * this, signal s)
+static state_ret_t State_B( state_t * this, event_t s)
 {
   STATE_DEBUG( s );
   state_ret_t ret;
@@ -74,7 +74,7 @@ static state_ret_t State_B( state_t * this, signal s)
   return ret;
 }
 
-static state_ret_t State_A0( state_t * this, signal s)
+static state_ret_t State_A0( state_t * this, event_t s)
 {
   STATE_DEBUG( s );
   state_ret_t ret;
@@ -107,7 +107,7 @@ static state_ret_t State_A0( state_t * this, signal s)
   return ret;
 }
 
-static state_ret_t State_A1( state_t * this, signal s )
+static state_ret_t State_A1( state_t * this, event_t s )
 {
   STATE_DEBUG( s );
   state_ret_t ret;
@@ -131,7 +131,7 @@ static state_ret_t State_A1( state_t * this, signal s )
   return ret;
 }
 
-static state_ret_t State_B0( state_t * this, signal s)
+static state_ret_t State_B0( state_t * this, event_t s)
 {
   STATE_DEBUG( s );
   state_ret_t ret;
