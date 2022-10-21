@@ -42,27 +42,34 @@
     } 
 #endif
 
-#define BUFFER_SIZE ( 32U )
+#define FIFO_BUFFER_SIZE ( 32U )
 #define MAX_NESTED_STATES ( 3 )
 
-_Static_assert( MAX_NESTED_STATES > 0U );
-_Static_assert( BUFFER_SIZE > 0U );
+_Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
+_Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" );
+_Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer size must be power of two" );
 
 struct fsm_events_t
 {
     uint32_t read_index;
     uint32_t write_index;
     uint32_t fill;
-    event_t event[ BUFFER_SIZE ];
+    event_t event[ FIFO_BUFFER_SIZE ];
 };
 
-extern void FSM_Init( state_t * state, fsm_events_t * fsm_event )
+static void InitEventBuffer( fsm_events_t * const fsm_event )
 {
     STATE_ENTER_CRITICAL;
     fsm_event->read_index = 0U;
     fsm_event->write_index = 0U;
     fsm_event->fill = 0U;
     STATE_EXIT_CRITICAL;
+}
+
+extern void FSM_Init( state_t * state, fsm_events_t * fsm_event )
+{
+    state_func_t init_path[ MAX_NESTED_STATES ];
+    InitEventBuffer( fsm_event );
 
     FSM_Dispatch( state, event_Enter );
 }
@@ -210,12 +217,12 @@ extern void FSM_FlushEvents( fsm_events_t * const fsm_event )
 extern void FSM_AddEvent( fsm_events_t * const fsm_event, event_t s )
 {
     STATE_ASSERT( fsm_event != NULL );
-    if( fsm_event->fill < BUFFER_SIZE )
+    if( fsm_event->fill < FIFO_BUFFER_SIZE )
     {
         STATE_ENTER_CRITICAL;
         fsm_event->event[ fsm_event->write_index++ ] = s;
         fsm_event->fill++;
-        fsm_event->write_index = ( fsm_event->write_index & ( BUFFER_SIZE - 1U ) );
+        fsm_event->write_index = ( fsm_event->write_index & ( FIFO_BUFFER_SIZE - 1U ) );
         STATE_EXIT_CRITICAL;
     }
 }
@@ -236,7 +243,7 @@ extern event_t FSM_GetLatestEvent( fsm_events_t * const fsm_event )
     {
         s = fsm_event->event[ fsm_event->read_index++ ];
         fsm_event->fill--;
-        fsm_event->read_index = ( fsm_event->read_index & ( BUFFER_SIZE - 1U ) );
+        fsm_event->read_index = ( fsm_event->read_index & ( FIFO_BUFFER_SIZE - 1U ) );
     }
     STATE_EXIT_CRITICAL;
 
