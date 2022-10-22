@@ -42,20 +42,12 @@
     } 
 #endif
 
-#define FIFO_BUFFER_SIZE ( 32U )
 #define MAX_NESTED_STATES ( 3 )
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 _Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" );
 _Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer size must be power of two" );
 
-struct fsm_events_t
-{
-    uint32_t read_index;
-    uint32_t write_index;
-    uint32_t fill;
-    event_t event[ FIFO_BUFFER_SIZE ];
-};
 
 static void InitEventBuffer( fsm_events_t * const fsm_event )
 {
@@ -66,12 +58,44 @@ static void InitEventBuffer( fsm_events_t * const fsm_event )
     STATE_EXIT_CRITICAL;
 }
 
-extern void FSM_Init( state_t * state, fsm_events_t * fsm_event )
+extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
+    STATE_ASSERT( state != NULL );
+    STATE_ASSERT( fsm_event != NULL );
+    STATE_ASSERT( initial_state != NULL );
+
     state_func_t init_path[ MAX_NESTED_STATES ];
     InitEventBuffer( fsm_event );
+    
+    state->state = initial_state;
+    state_ret_t ret;
 
-    FSM_Dispatch( state, event_Enter );
+    uint32_t idx = 0U;
+    for( idx = 0U; idx < MAX_NESTED_STATES; idx++ )
+    {
+        init_path[ idx ] = state->state;
+        if( state->state == NULL )
+        {
+            /* Root of the HSM has been reached */
+            break;
+        }
+
+        STATE_ASSERT( state->state != NULL );
+        ret = state->state( state, EVENT( None ) );
+    }
+
+    /* This assertion failing implies an initial state of NULL */
+    STATE_ASSERT( idx > 0U );
+    STATE_ASSERT( idx < MAX_NESTED_STATES );
+
+    for( ; idx > 0U; idx-- )
+    {
+        STATE_ASSERT( idx > 0U );
+        state->state = init_path[ idx - 1U ];
+        ret = state->state( state, EVENT( Enter ) );
+    }
+
+    STATE_ASSERT( state->state == initial_state );
 }
 
 extern void FSM_Dispatch( state_t * state, event_t s )

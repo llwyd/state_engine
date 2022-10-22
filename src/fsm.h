@@ -96,8 +96,18 @@ typedef enum
 }
 state_ret_t;
 
-/* Circular buffer for FSM events. This is declared inside the .c file */
+/* Circular buffer for FSM events. */
 typedef struct fsm_events_t fsm_events_t;
+
+#define FIFO_BUFFER_SIZE ( 32U )
+
+struct fsm_events_t
+{
+    uint32_t read_index;
+    uint32_t write_index;
+    uint32_t fill;
+    event_t event[ FIFO_BUFFER_SIZE ];
+};
 
 /* Forward declaration so that function pointer with state can return itself */
 typedef struct state_t state_t;
@@ -110,7 +120,7 @@ struct state_t
     state_func_t state;
 };
 
-extern void FSM_Init( state_t * state, fsm_events_t * fsm_event );
+extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
 extern void FSM_HierarchicalDispatch( state_t * state, event_t s );

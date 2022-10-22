@@ -39,10 +39,8 @@ static state_ret_t State_A( state_t * this, event_t s)
       HANDLED();
       break;
     default:
-    {
       NO_PARENT();
       break;
-    }
   }
 
   return ret;
@@ -157,9 +155,10 @@ static state_ret_t State_B0( state_t * this, event_t s)
 int main( void )
 {
   state_t state_machine;
+  fsm_events_t events;
 
-  state_machine.state = STATE( A0 );
-
+  FSM_Init( &state_machine, &events, STATE( A0 ) );  
+  
   FSM_HierarchicalDispatch( &state_machine, EVENT(Tick ));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB ));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0 ));
