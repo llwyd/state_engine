@@ -51,9 +51,12 @@ typedef struct
 lca_t;
 
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
-static void InitEventBuffer( state_fifo_t * const fsm_event );
 
+#ifdef UNIT_TESTS
+extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
+#else
 static void InitEventBuffer( state_fifo_t * const fsm_event )
+#endif
 {
     STATE_ENTER_CRITICAL;
     fsm_event->read_index = 0U;
@@ -69,8 +72,11 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
     STATE_ASSERT( initial_state != NULL );
 
     state_func_t init_path[ MAX_NESTED_STATES ];
+#ifdef UNIT_TESTS
+    STATE_InitEventBuffer( fsm_event );
+#else
     InitEventBuffer( fsm_event );
-    
+#endif
     state->state = initial_state;
     state_ret_t ret;
 

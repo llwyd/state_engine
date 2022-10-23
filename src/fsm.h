@@ -44,6 +44,7 @@
     { \
         _SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ) \
         SIG( SIGNAL_ENUM ) \
+        _SIGNAL_ENUM( EventCount ) \
     }
 
 #define GENERATE_SIGNAL_STRINGS( SIG ) \
@@ -120,6 +121,12 @@ struct state_t
     state_func_t state;
 };
 
+#ifdef UNIT_TESTS
+extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
+
+#else
+
+#endif
 extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
@@ -131,6 +138,7 @@ extern void FSM_FlushEvents( state_fifo_t * const fsm_event );
 extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s);
 extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event );
 extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event );
+
 
 #endif /* _FSM_H_ */
 
