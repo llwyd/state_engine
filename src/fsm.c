@@ -131,6 +131,34 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     return path_length;
 }
 
+static state_func_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ static MAX_NESTED_STATES ], uint32_t out_depth, state_func_t out_path[ static MAX_NESTED_STATES ] )
+{
+    uint32_t min_depth = ( in_depth < out_depth ) ? in_depth : out_depth;
+    min_depth++;
+    state_func_t lca_func;
+    bool found_lca = false;
+
+    uint32_t in_idx = in_depth;
+    uint32_t out_idx = out_depth;
+
+    state_func_t last_root = in_path[ in_idx ];
+    for( uint32_t idx = 0U; idx < min_depth; idx++ )
+    {
+        if( in_path[in_idx] != out_path[out_idx] )
+        {
+            lca_func = last_root;
+            found_lca = true;
+            break;
+        }
+        last_root = in_path[in_idx];
+        in_idx--;
+        out_idx--;
+    }
+
+    STATE_ASSERT( found_lca );
+    return lca_func;
+}
+
 extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
 {
     STATE_ASSERT( state->state != NULL );
@@ -138,12 +166,7 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
     STATE_ASSERT( s != _SIGNAL_ENUM( None ) );
     STATE_DISPATCH_START;
 
-    /* These hold the history up and down the state tree */
-    state_func_t path_out[ MAX_NESTED_STATES ];
-    state_func_t path_in[ MAX_NESTED_STATES ];
-
     /* Always guaranteed to execute the first state */
-    path_out[0] = state->state; 
     const state_func_t source = state->state;
 
     state_ret_t status = state->state( state, s );
@@ -159,74 +182,30 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         STATE_TRAVERSE_START;    
 
         /* Store the target state */
-        path_in[0] = state->state;
         const state_func_t target = state->state; 
+    
+        /* These hold the history up and down the state tree */
+        state_func_t path_out[ MAX_NESTED_STATES ];
+        state_func_t path_in[ MAX_NESTED_STATES ];
 
-        /* Begin traversal by moving source and target up a super state */
-        bool found_path = false;
+        const uint32_t in_depth = TraverseToRoot( state, path_in );
+        state->state = source;
+        const uint32_t out_depth = TraverseToRoot( state, path_out );
 
-        uint32_t in_max_nested = MAX_NESTED_STATES;
-        uint32_t out_max_nested = MAX_NESTED_STATES;
-        
-        uint32_t in_idx = 0;
-        uint32_t out_idx = 0;
-        for( in_idx = 1; in_idx < in_max_nested; in_idx++ )
+        state_func_t lca_func = DetermineLCA( in_depth, path_in, out_depth, path_out );
+
+        state->state = source;
+        state_func_t * path = path_out;
+        do
         {
-            state_func_t in;
-            state->state = path_in[ in_idx - 1 ];
-            if( state->state != NULL )
-            {
-                status = state->state( state, event_None );
-            }
-            in = state->state;
-            
-            STATE_ASSERT( in_idx < MAX_NESTED_STATES ); 
-            path_in[ in_idx ] = in;
-            
-            for( out_idx = 1; out_idx < out_max_nested; out_idx++ )
-            {
-                state->state = path_out[out_idx - 1]; 
-                if( state->state != NULL )
-                {
-                    status = state->state( state, event_None );
-                    STATE_ASSERT( out_idx < MAX_NESTED_STATES ); 
-                    path_out[ out_idx ] = state->state;
-                }
-                else
-                {
-                    out_max_nested = out_idx;
-                }
-
-                /* if shared ancestor found, then break */
-                if( in == state->state )
-                {
-                    found_path = true;
-
-                    /* A legit use of GOTO! */
-                    goto transition_path_found;
-                }
-               
-            }
+            status = (*path++)( state, EVENT( Exit ) );
         }
+        while( (*path) != lca_func );            
 
-transition_path_found:
-        STATE_ASSERT( found_path );
-        
-        /* Exit nested states */
-        for( uint32_t jdx = 0; jdx < out_idx; jdx++ )
+        path = &path_in[ in_depth - 1U ];
+        for( uint32_t idx = 0; idx < in_depth; idx++ )
         {
-            state->state = path_out[jdx];
-            status = state->state( state, EVENT( Exit ) );
-            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
-        }
-
-        /* Enter nested states */
-        for( uint32_t idx = in_idx; idx > 0; idx-- )
-        {
-            STATE_ASSERT( idx != 0 );
-            state->state = path_in[idx - 1];
-            status = state->state( state, EVENT( Enter ) );
-            STATE_ASSERT( status == RETURN_ENUM( Handled ) );
+            status = (*path--)( state, EVENT( Enter ) );
         }
         
         /* Reassign original state */    
