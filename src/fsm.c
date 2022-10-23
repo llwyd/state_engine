@@ -49,6 +49,9 @@ _Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" )
 _Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer size must be power of two" );
 
 
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
+static void InitEventBuffer( fsm_events_t * const fsm_event );
+
 static void InitEventBuffer( fsm_events_t * const fsm_event )
 {
     STATE_ENTER_CRITICAL;
@@ -70,19 +73,7 @@ extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*i
     state->state = initial_state;
     state_ret_t ret;
 
-    uint32_t idx = 0U;
-    for( idx = 0U; idx < MAX_NESTED_STATES; idx++ )
-    {
-        init_path[ idx ] = state->state;
-        if( state->state == NULL )
-        {
-            /* Root of the HSM has been reached */
-            break;
-        }
-
-        STATE_ASSERT( state->state != NULL );
-        ret = state->state( state, EVENT( None ) );
-    }
+    uint32_t idx = TraverseToRoot( state, init_path );
 
     /* This assertion failing implies an initial state of NULL */
     STATE_ASSERT( idx > 0U );
@@ -93,6 +84,7 @@ extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*i
         STATE_ASSERT( idx > 0U );
         state->state = init_path[ idx - 1U ];
         ret = state->state( state, EVENT( Enter ) );
+        STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
     }
 
     STATE_ASSERT( state->state == initial_state );
@@ -111,6 +103,32 @@ extern void FSM_Dispatch( state_t * state, event_t s )
         previous = state->state;
         status = state->state( state, event_Enter );
     }
+}
+
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] )
+{
+    STATE_ASSERT( source != NULL );
+    STATE_ASSERT( source->state != NULL );
+    STATE_ASSERT( path != NULL );
+
+    state_ret_t ret;
+    uint32_t path_length = 0U;
+    
+    for( path_length = 0U; path_length < MAX_NESTED_STATES; path_length++ )
+    {
+        path[ path_length ] = source->state;
+        if( source->state == NULL )
+        {
+            /* Root of the HSM has been reached */
+            break;
+        }
+
+        STATE_ASSERT( source->state != NULL );
+        ret = source->state( source, EVENT( None ) );
+        STATE_ASSERT( ret == RETURN_ENUM( Unhandled ) );
+    }
+
+    return path_length;
 }
 
 extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
