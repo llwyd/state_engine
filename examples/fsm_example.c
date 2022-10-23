@@ -85,6 +85,9 @@ static state_ret_t State_A0( state_t * this, event_t s)
     case EVENT(Exit):
       HANDLED();
       break;
+    case EVENT(TransitionToA):
+      TRANSITION( A );
+      break;
     case EVENT(TransitionToA1):
       TRANSITION( A1 );
       break;
@@ -168,7 +171,7 @@ int main( void )
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB0));
   FSM_HierarchicalDispatch( &state_machine, EVENT(Tick));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
-  FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
+  //FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
 
   return 0;
 }
