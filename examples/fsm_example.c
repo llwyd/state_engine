@@ -171,8 +171,8 @@ int main( void )
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToB0));
   FSM_HierarchicalDispatch( &state_machine, EVENT(Tick));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
+  FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA));
-  //FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
 
   return 0;
 }

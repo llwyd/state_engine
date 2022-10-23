@@ -166,7 +166,24 @@ static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ static MAX_N
     /* If LCA not found, need to carry out a more thorough search for transition path */
     if( !found_lca )
     {
-        /* Exit substate into parent state? */
+        /* 1. Is state trying to transition into itself? */
+        if( in_path[0] == out_path[0] ) 
+        {
+            lca.lca_in = &in_path[1];
+            lca.lca_out = &out_path[1];
+            found_lca = true;
+        }
+        /* 2. Exit substate into parent state? */
+        else if ( in_path[0] == out_path[1] )
+        {
+            lca.lca_in = &in_path[0];
+            lca.lca_out = &out_path[1];
+            found_lca = true;
+        }
+        else
+        {
+            /* Nowt */
+        }
     }
 
     STATE_ASSERT( found_lca );
@@ -219,12 +236,11 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
 
         path = (lca.lca_in);
        
-        do 
+        while( (*path) != target )
         {
             (path--);
             status = (*path)( state, EVENT( Enter ) );
-        } while( (*path) != target );
-        
+        }         
         /* Reassign original state */    
         state->state = target;
     
