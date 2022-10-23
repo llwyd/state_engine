@@ -158,7 +158,7 @@ static state_ret_t State_B0( state_t * this, event_t s)
 int main( void )
 {
   state_t state_machine;
-  fsm_events_t events;
+  state_fifo_t events;
 
   FSM_Init( &state_machine, &events, STATE( A0 ) );  
   
@@ -173,6 +173,7 @@ int main( void )
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA0));
   FSM_HierarchicalDispatch( &state_machine, EVENT(TransitionToA));
+  FSM_HierarchicalDispatch( &state_machine, EVENT(Tick));
 
   return 0;
 }

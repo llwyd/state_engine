@@ -97,11 +97,11 @@ typedef enum
 state_ret_t;
 
 /* Circular buffer for FSM events. */
-typedef struct fsm_events_t fsm_events_t;
+typedef struct state_fifo_t state_fifo_t;
 
 #define FIFO_BUFFER_SIZE ( 32U )
 
-struct fsm_events_t
+struct state_fifo_t
 {
     uint32_t read_index;
     uint32_t write_index;
@@ -120,17 +120,17 @@ struct state_t
     state_func_t state;
 };
 
-extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
+extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
 extern void FSM_HierarchicalDispatch( state_t * state, event_t s );
 extern void FSM_Dispatch( state_t * state, event_t s );
 
 /* Event queuing */
-extern void FSM_FlushEvents( fsm_events_t * const fsm_event );
-extern void FSM_AddEvent( fsm_events_t * const fsm_event, event_t s);
-extern event_t FSM_GetLatestEvent( fsm_events_t * const fsm_event );
-extern bool FSM_EventsAvailable( const fsm_events_t * const fsm_event );
+extern void FSM_FlushEvents( state_fifo_t * const fsm_event );
+extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s);
+extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event );
+extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event );
 
 #endif /* _FSM_H_ */
 

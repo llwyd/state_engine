@@ -11,14 +11,14 @@
 #ifdef TARGET_ARM
     #define STATE_ENTER_CRITICAL { asm("CPSID IF"); }
     #define STATE_EXIT_CRITICAL  { asm("CPSIE IF"); }
-#define STATE_ASSERT( c ) \
-    { \
-        if ( !(c) ) \
+    #define STATE_ASSERT( c ) \
         { \
-            asm("CPSID IF"); \
-            while(1); \
-        } \
-    } 
+            if ( !(c) ) \
+            { \
+                asm("CPSID IF"); \
+                while(1); \
+            } \
+        } 
 
 #elif TARGET_ESP32
     #define STATE_ENTER_CRITICAL {  }
@@ -30,11 +30,6 @@
     
     #define STATE_ENTER_CRITICAL {  }
     #define STATE_EXIT_CRITICAL  {  }
-    #define STATE_DISPATCH_START printf("[FSM]: Dispatching Event Start\n");
-    #define STATE_DISPATCH_END printf("[FSM]: Dispatching Event End\n");
-
-    #define STATE_TRAVERSE_START printf("[FSM]: Traversing States Start\n");
-    #define STATE_TRAVERSE_END printf("[FSM]: Traversing States End\n");
 
     #define STATE_ASSERT( c ) \
     { \
@@ -56,9 +51,9 @@ typedef struct
 lca_t;
 
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
-static void InitEventBuffer( fsm_events_t * const fsm_event );
+static void InitEventBuffer( state_fifo_t * const fsm_event );
 
-static void InitEventBuffer( fsm_events_t * const fsm_event )
+static void InitEventBuffer( state_fifo_t * const fsm_event )
 {
     STATE_ENTER_CRITICAL;
     fsm_event->read_index = 0U;
@@ -67,7 +62,7 @@ static void InitEventBuffer( fsm_events_t * const fsm_event )
     STATE_EXIT_CRITICAL;
 }
 
-extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
+extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
     STATE_ASSERT( state != NULL );
     STATE_ASSERT( fsm_event != NULL );
@@ -99,15 +94,15 @@ extern void FSM_Init( state_t * state, fsm_events_t * fsm_event, state_ret_t (*i
 extern void FSM_Dispatch( state_t * state, event_t s )
 {
     state_func_t previous = state->state;
-    state_ret_t status = state->state( state, s );
+    state_ret_t ret = state->state( state, s );
 
-    STATE_ASSERT( status != RETURN_ENUM( Unhandled ) );
+    STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
 
-    while ( status == RETURN_ENUM( Transition ) )
+    while ( ret == RETURN_ENUM( Transition ) )
     {
         previous( state, event_Exit );
         previous = state->state;
-        status = state->state( state, event_Enter );
+        ret = state->state( state, event_Enter );
     }
 }
 
@@ -195,23 +190,19 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );
     STATE_ASSERT( s != _SIGNAL_ENUM( None ) );
-    STATE_DISPATCH_START;
 
     /* Always guaranteed to execute the first state */
     const state_func_t source = state->state;
 
-    state_ret_t status = state->state( state, s );
+    state_ret_t ret = state->state( state, s );
 
-    while( ( status == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
+    while( ( ret == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
     {
-        status = state->state( state, s );
+        ret = state->state( state, s );
     }
 
-    if( status == RETURN_ENUM( Transition ) )
+    if( ret == RETURN_ENUM( Transition ) )
     {
-        /* Perform Traversal algorithm */
-        STATE_TRAVERSE_START;    
-
         /* Store the target state */
         const state_func_t target = state->state; 
     
@@ -229,7 +220,8 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         state_func_t * path = path_out;
         do
         {
-            status = (*path++)( state, EVENT( Exit ) );
+            ret = (*path++)( state, EVENT( Exit ) );
+            STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }
         while( (*path) != *lca.lca_out );
 
@@ -239,12 +231,12 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         while( (*path) != target )
         {
             (path--);
-            status = (*path)( state, EVENT( Enter ) );
+            ret = (*path)( state, EVENT( Enter ) );
+            STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }         
         /* Reassign original state */    
         state->state = target;
     
-        STATE_TRAVERSE_END;    
     }
     else
     {
@@ -252,11 +244,9 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         state->state = source;
     }
 
-    STATE_DISPATCH_END;
 }
 
-
-extern void FSM_FlushEvents( fsm_events_t * const fsm_event )
+extern void FSM_FlushEvents( state_fifo_t * const fsm_event )
 {
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill > 0U )
@@ -268,7 +258,7 @@ extern void FSM_FlushEvents( fsm_events_t * const fsm_event )
     }
 }
 
-extern void FSM_AddEvent( fsm_events_t * const fsm_event, event_t s )
+extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s )
 {
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill < FIFO_BUFFER_SIZE )
@@ -281,13 +271,13 @@ extern void FSM_AddEvent( fsm_events_t * const fsm_event, event_t s )
     }
 }
 
-extern bool FSM_EventsAvailable( const fsm_events_t * const fsm_event )
+extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event )
 {
     STATE_ASSERT( fsm_event != NULL );
     return ( fsm_event->fill > 0U );
 }
 
-extern event_t FSM_GetLatestEvent( fsm_events_t * const fsm_event )
+extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event )
 {
     event_t s;
     STATE_ASSERT( fsm_event != NULL );
