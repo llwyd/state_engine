@@ -2,3 +2,4 @@
 examples/fsm_example
 xmacro/fsm_xmacro
 unity/
+unit_tests/tests
