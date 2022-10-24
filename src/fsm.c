@@ -61,9 +61,13 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     extern void STATE_UnitTestInit( void );
     static void UNITTEST_FlushHistory( state_history_t * history );
     static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event );
-    #define STATE_EXECUTE( current_state, event ) current_state->state( current_state, event ); UNITTEST_UpdateStateHistory( &state_history, current_state, event );
+    #define STATE_EXECUTE( current_state, event ) \
+    { \
+        UNITTEST_UpdateStateHistory( &state_history, current_state, event ); \
+        ret =  current_state->state( current_state, event ); \
+    }
 #else
-    #define STATE_EXECUTE( current_state, event ) current_state->state( current_state, event )
+    #define STATE_EXECUTE( current_state, event ) ret = current_state->state( current_state, event )
 #endif
 
 
@@ -107,7 +111,7 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
     {
         STATE_ASSERT( idx > 0U );
         state->state = init_path[ idx - 1U ];
-        ret = STATE_EXECUTE( state, EVENT( Enter ) );
+        STATE_EXECUTE( state, EVENT( Enter ) );
         STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
     }
 
@@ -217,11 +221,13 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
     /* Always guaranteed to execute the first state */
     const state_func_t source = state->state;
 
-    state_ret_t ret = STATE_EXECUTE( state, s );
+    state_ret_t ret;
+    
+    STATE_EXECUTE( state, s );
 
     while( ( ret == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
     {
-        ret = STATE_EXECUTE( state, s );
+        STATE_EXECUTE( state, s );
     }
 
     if( ret == RETURN_ENUM( Transition ) )
@@ -244,7 +250,7 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         do
         {   
             state->state = (*path++);
-            ret = STATE_EXECUTE( state, EVENT( Exit ) );
+            STATE_EXECUTE( state, EVENT( Exit ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }
         while( (*path) != *lca.lca_out );
@@ -256,7 +262,7 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         {
             (path--);
             state->state = (*path);
-            ret = STATE_EXECUTE( state, EVENT( Enter ) );
+            STATE_EXECUTE( state, EVENT( Enter ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }         
         /* Reassign original state */    
