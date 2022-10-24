@@ -100,6 +100,7 @@ state_ret_t;
 /* Circular buffer for FSM events. */
 typedef struct state_fifo_t state_fifo_t;
 
+#define MAX_NESTED_STATES ( 3 )
 #define FIFO_BUFFER_SIZE ( 32U )
 
 struct state_fifo_t
@@ -122,7 +123,15 @@ struct state_t
 };
 
 #ifdef UNIT_TESTS
+typedef struct
+{
+    state_func_t state;
+    event_t event;
+}
+state_history_t;
+
 extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
+extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
 
 #else
 

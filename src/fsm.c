@@ -37,7 +37,6 @@
     } 
 #endif
 
-#define MAX_NESTED_STATES ( 3 )
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 _Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" );
