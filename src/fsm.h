@@ -123,16 +123,29 @@ struct state_t
 };
 
 #ifdef UNIT_TESTS
-typedef struct
-{
-    state_func_t state;
-    event_t event;
-}
-state_history_t;
 
-extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
-extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
+    #define UNIT_TEST_HISTORY_SIZE ( 64U )
 
+    typedef struct
+    {
+        state_func_t state;
+        event_t event;
+    }
+    state_history_data_t;
+
+    typedef struct
+    {
+        state_history_data_t data[ UNIT_TEST_HISTORY_SIZE ];
+        uint32_t read_index;
+        uint32_t write_index;
+        uint32_t fill;
+    }
+    state_history_t;
+
+    extern state_history_t * STATE_GetHistory ( void );
+    extern void STATE_UnitTestInit(void);
+    extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
+    extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
 #else
 
 #endif

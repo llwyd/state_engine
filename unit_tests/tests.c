@@ -103,6 +103,11 @@ void test_FIFO_Flush( void )
     TEST_ASSERT_FALSE( FSM_EventsAvailable( &events ) );
 }
 
+void test_STATE_Init( void )
+{
+    STATE_UnitTestInit();
+}
+
 int main( void )
 {
     UNITY_BEGIN();
@@ -112,6 +117,7 @@ int main( void )
     RUN_TEST( test_FIFO_AddRemoveEvent );
     RUN_TEST( test_FIFO_WrapAround );
     RUN_TEST( test_FIFO_Flush );
+    RUN_TEST( test_STATE_Init );
 
     return UNITY_END();
 }

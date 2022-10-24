@@ -51,10 +51,28 @@ lca_t;
 
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
 
+/* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
-extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
+
+    #include <string.h>
+    
+    static state_history_t state_history;
+
+    extern void STATE_UnitTestInit( void );
+    static void UNITTEST_FlushHistory( state_history_t * history );
+    static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event );
+    #define STATE_EXECUTE( current_state, event ) current_state->state( current_state, event ); UNITTEST_UpdateStateHistory( &state_history, current_state, event );
 #else
-static void InitEventBuffer( state_fifo_t * const fsm_event )
+    #define STATE_EXECUTE( current_state, event ) current_state->state( current_state, event )
+#endif
+
+
+
+
+#ifdef UNIT_TESTS
+    extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
+#else
+    static void InitEventBuffer( state_fifo_t * const fsm_event ) 
 #endif
 {
     STATE_ENTER_CRITICAL;
@@ -89,7 +107,7 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
     {
         STATE_ASSERT( idx > 0U );
         state->state = init_path[ idx - 1U ];
-        ret = state->state( state, EVENT( Enter ) );
+        ret = STATE_EXECUTE( state, EVENT( Enter ) );
         STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
     }
 
@@ -199,11 +217,11 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
     /* Always guaranteed to execute the first state */
     const state_func_t source = state->state;
 
-    state_ret_t ret = state->state( state, s );
+    state_ret_t ret = STATE_EXECUTE( state, s );
 
     while( ( ret == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
     {
-        ret = state->state( state, s );
+        ret = STATE_EXECUTE( state, s );
     }
 
     if( ret == RETURN_ENUM( Transition ) )
@@ -224,8 +242,9 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         state->state = source;
         state_func_t * path = path_out;
         do
-        {
-            ret = (*path++)( state, EVENT( Exit ) );
+        {   
+            state->state = (*path++);
+            ret = STATE_EXECUTE( state, EVENT( Exit ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }
         while( (*path) != *lca.lca_out );
@@ -236,7 +255,8 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         while( (*path) != target )
         {
             (path--);
-            ret = (*path)( state, EVENT( Enter ) );
+            state->state = (*path);
+            ret = STATE_EXECUTE( state, EVENT( Enter ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }         
         /* Reassign original state */    
@@ -298,4 +318,36 @@ extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event )
 
     return s;
 }
+
+
+#ifdef UNIT_TESTS
+extern void STATE_UnitTestInit( void )
+{
+    UNITTEST_FlushHistory( &state_history );
+}
+
+static void UNITTEST_FlushHistory( state_history_t * history )
+{
+    history->read_index = 0U;
+    history->write_index = 0U;
+    history->fill = 0U;
+    memset( history->data, 0x00, sizeof(history->data) );
+}
+
+static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event )
+{
+    history->data[history->write_index].state = state->state; 
+    history->data[history->write_index].event = event; 
+
+    history->fill++;
+    history->write_index++;
+}
+
+extern state_history_t * STATE_GetHistory( void )
+{
+    return &state_history;
+}
+
+#endif
+
 
