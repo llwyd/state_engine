@@ -259,16 +259,59 @@ void test_STATE_Init( void )
     TEST_ASSERT_EQUAL( history->data[2].event, NULL );
 }
 
+void test_STATE_SingleEvent( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A );
+
+    FSM_HierarchicalDispatch( &state, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->fill, 1U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, NULL );
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A ) );
+}
+
+void test_STATE_SingleUnhandledEvent( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE ( A ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
+}
+
 int main( void )
 {
     UNITY_BEGIN();
 
     RUN_TEST( test_STATE_Preprocessor );
+
     RUN_TEST( test_FIFO_Init );
     RUN_TEST( test_FIFO_AddRemoveEvent );
     RUN_TEST( test_FIFO_WrapAround );
     RUN_TEST( test_FIFO_Flush );
+
     RUN_TEST( test_STATE_Init );
+    RUN_TEST( test_STATE_SingleEvent );
+    RUN_TEST( test_STATE_SingleUnhandledEvent );
 
     return UNITY_END();
 }
