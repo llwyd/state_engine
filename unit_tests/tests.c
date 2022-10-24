@@ -17,6 +17,135 @@
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
+GENERATE_STATE_PROTOTYPES( STATES );
+
+static state_ret_t State_A( state_t * this, event_t s)
+{
+  state_ret_t ret;
+
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(Tick):
+      HANDLED();
+      break;
+    default:
+      NO_PARENT();
+      break;
+  }
+
+  return ret;
+}
+
+static state_ret_t State_B( state_t * this, event_t s)
+{
+  state_ret_t ret;
+  
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(Tick):
+      HANDLED();
+      break;
+    case EVENT(TransitionToA0):
+      TRANSITION( A0 );
+      break;
+    default:
+      NO_PARENT();
+      break;
+  }
+  return ret;
+}
+
+static state_ret_t State_A0( state_t * this, event_t s)
+{
+  state_ret_t ret;
+
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(TransitionToA):
+      TRANSITION( A );
+      break;
+    case EVENT(TransitionToA1):
+      TRANSITION( A1 );
+      break;
+    case EVENT(TransitionToB):
+      TRANSITION( B );
+      break;
+    case EVENT(TransitionToB0):
+      TRANSITION( B0 );
+      break;
+    case EVENT(TransitionToA0):
+      TRANSITION( A0 );
+      break;
+    default:
+      PARENT( A );
+      break;
+  }
+
+  return ret;
+}
+
+static state_ret_t State_A1( state_t * this, event_t s )
+{
+  state_ret_t ret;
+  
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(TransitionToA0):
+      TRANSITION( A0 );
+      break;
+    default:
+      PARENT( A );
+      break;
+  }
+
+  return ret;
+}
+
+static state_ret_t State_B0( state_t * this, event_t s)
+{
+  state_ret_t ret;
+
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(TransitionToA0):
+      TRANSITION( A0 );
+      break;
+    default:
+      PARENT( B );
+      break;
+  }
+  return ret;
+}
 
 void setUp( void )
 {
@@ -106,6 +235,28 @@ void test_FIFO_Flush( void )
 void test_STATE_Init( void )
 {
     STATE_UnitTestInit();
+
+    state_t state;
+    state_fifo_t events;
+
+    state_history_t * history = STATE_GetHistory();
+
+    /* State machine should
+     * StateA -> Enter
+     * StateA0 ->Enter
+     */
+
+    FSM_Init( &state, &events , STATE( A0 ) );
+    
+    TEST_ASSERT_EQUAL( history->fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Enter ) );
+    
+    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
+    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
 }
 
 int main( void )
