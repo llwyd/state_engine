@@ -16,7 +16,6 @@
   ST( B0 ) \
 
 GENERATE_SIGNALS( SIGNALS );
-GENERATE_SIGNAL_STRINGS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
 
 static state_ret_t State_A( state_t * this, event_t s)

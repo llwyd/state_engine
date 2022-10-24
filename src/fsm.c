@@ -49,7 +49,7 @@ typedef struct
 }
 lca_t;
 
-static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
 
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
@@ -133,7 +133,7 @@ extern void FSM_Dispatch( state_t * state, event_t s )
     }
 }
 
-static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] )
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] )
 {
     STATE_ASSERT( source != NULL );
     STATE_ASSERT( source->state != NULL );
@@ -159,7 +159,7 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     return path_length;
 }
 
-static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ static MAX_NESTED_STATES ], uint32_t out_depth, state_func_t out_path[ static MAX_NESTED_STATES ] )
+static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ MAX_NESTED_STATES ], uint32_t out_depth, state_func_t out_path[ MAX_NESTED_STATES ] )
 {
     uint32_t min_depth = ( in_depth < out_depth ) ? in_depth : out_depth;
     min_depth++;
