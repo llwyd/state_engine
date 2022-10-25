@@ -20,7 +20,9 @@
             if ( !(c) ) \
             { \
                 asm("CPSID IF"); \
-                while(1); \
+                while(1) \
+                { \
+                } \
             } \
         } 
 
@@ -220,7 +222,7 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
 {
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );
-    STATE_ASSERT( s != _SIGNAL_ENUM( None ) );
+    STATE_ASSERT( s != (event_t)EVENT( None ) );
 
     /* Always guaranteed to execute the first state */
     const state_func_t source = state->state;

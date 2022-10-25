@@ -24,14 +24,19 @@
     RETURN( Unhandled ) \
     RETURN( Transition ) \
 
+//cppcheck-suppress misra-c2012-2.10
 #define SIGNAL_ENUM(x) event_##x,
+//cppcheck-suppress misra-c2012-2.10
 #define _SIGNAL_ENUM(x) event_##x
+//cppcheck-suppress misra-c2012-2.10
 #define RETURN_ENUM(x) return_##x
 #define EVENT(x) _SIGNAL_ENUM(x)
 
+//cppcheck-suppress misra-c2012-2.10
 #define STATE(x) State_##x
 #define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
 
+//cppcheck-suppress misra-c2012-2.10
 #define _SIGNAL_STR(x) #x
 #define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
 
