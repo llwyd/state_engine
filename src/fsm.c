@@ -116,7 +116,7 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
     for( ; idx > 0U; idx-- )
     {
         STATE_ASSERT( idx > 0U );
-        state->state = init_path[ idx - 1U ];
+        state->state = *init_path[ idx - 1U ];
         STATE_EXECUTE( state, EVENT( Enter ) );
         STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
     }
@@ -150,7 +150,7 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     
     for( path_length = 0U; path_length < MAX_NESTED_STATES; path_length++ )
     {
-        path[ path_length ] = source->state;
+        path[ path_length ] = *source->state;
         if( source->state == NULL )
         {
             /* Root of the HSM has been reached */
