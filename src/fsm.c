@@ -67,11 +67,11 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event );
     #define STATE_EXECUTE( current_state, event ) \
     { \
-        UNITTEST_UpdateStateHistory( &state_history, current_state, event ); \
-        ret =  current_state->state( current_state, event ); \
+        UNITTEST_UpdateStateHistory( &state_history, (current_state), (event) ); \
+        ret =  (current_state)->state( (current_state), (event) ); \
     }
 #else
-    #define STATE_EXECUTE( current_state, event ) ret = current_state->state( current_state, event )
+    #define STATE_EXECUTE( current_state, event ) ret = (current_state)->state( (current_state), (event) )
 #endif
 
 
