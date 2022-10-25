@@ -8,6 +8,10 @@
 
 #include "fsm.h"
 
+#ifdef UNIT_TESTS
+    #include <string.h>
+#endif
+
 #ifdef TARGET_ARM
     #define STATE_ENTER_CRITICAL { asm("CPSID IF"); }
     #define STATE_EXIT_CRITICAL  { asm("CPSIE IF"); }
@@ -24,6 +28,7 @@
     #define STATE_ENTER_CRITICAL {  }
     #define STATE_EXIT_CRITICAL  {  }
 #else
+//cppcheck-suppress misra-c2012-21.6
     #include <stdio.h>
     #include <stdlib.h>
     #include <assert.h>
@@ -54,7 +59,6 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
 
-    #include <string.h>
     
     static state_history_t state_history;
 
@@ -249,7 +253,8 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         state_func_t * path = path_out;
         do
         {   
-            state->state = (*path++);
+            state->state = (*path);
+            (path++);
             STATE_EXECUTE( state, EVENT( Exit ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }
@@ -295,7 +300,8 @@ extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s )
     if( fsm_event->fill < FIFO_BUFFER_SIZE )
     {
         STATE_ENTER_CRITICAL;
-        fsm_event->event[ fsm_event->write_index++ ] = s;
+        fsm_event->event[ fsm_event->write_index ] = s;
+        fsm_event->write_index++;
         fsm_event->fill++;
         fsm_event->write_index = ( fsm_event->write_index & ( FIFO_BUFFER_SIZE - 1U ) );
         STATE_EXIT_CRITICAL;
@@ -316,7 +322,8 @@ extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event )
     STATE_ENTER_CRITICAL;
     if( fsm_event->fill > 0U )
     {
-        s = fsm_event->event[ fsm_event->read_index++ ];
+        s = fsm_event->event[ fsm_event->read_index ];
+        fsm_event->read_index++;
         fsm_event->fill--;
         fsm_event->read_index = ( fsm_event->read_index & ( FIFO_BUFFER_SIZE - 1U ) );
     }
@@ -337,7 +344,7 @@ static void UNITTEST_FlushHistory( state_history_t * history )
     history->read_index = 0U;
     history->write_index = 0U;
     history->fill = 0U;
-    memset( history->data, 0x00, sizeof(history->data) );
+    (void)memset( history->data, 0x00, sizeof(history->data) );
 }
 
 static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event )

@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _FSM_H_
-#define _FSM_H_
+#ifndef STATE_H_
+#define STATE_H_
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -161,5 +161,5 @@ extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event );
 extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event );
 
 
-#endif /* _FSM_H_ */
+#endif /* STATE_H_ */
 
