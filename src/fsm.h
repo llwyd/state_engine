@@ -12,10 +12,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* Global Settings */
-#define STATE_ASSERT_ENABLE == false
-#define STATE_DEBUG_ENABLE == false
-
 /* Core State Machine Defines and helper macros */
 #define DEFAULT_SIGNALS(SIGNAL) \
     SIGNAL( None ) \
@@ -61,10 +57,13 @@
 
 #define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
 
-
+//cppcheck-suppress misra-c2012-2.5
 #define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
+//cppcheck-suppress misra-c2012-2.5
 #define TRANSITION( new_state ) this->state = STATE(new_state);  ret = RETURN_ENUM( Transition )
+//cppcheck-suppress misra-c2012-2.5
 #define HANDLED() ret = RETURN_ENUM ( Handled )
+//cppcheck-suppress misra-c2012-2.5
 #define NO_PARENT() this->state = NULL; ret = RETURN_ENUM( Unhandled )
 
 
@@ -100,7 +99,7 @@ state_ret_t;
 /* Circular buffer for FSM events. */
 typedef struct state_fifo_t state_fifo_t;
 
-#define MAX_NESTED_STATES ( 3 )
+#define MAX_NESTED_STATES ( 3U )
 #define FIFO_BUFFER_SIZE ( 32U )
 
 struct state_fifo_t
