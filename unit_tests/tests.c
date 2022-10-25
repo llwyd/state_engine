@@ -33,6 +33,9 @@ static state_ret_t State_A( state_t * this, event_t s)
     case EVENT(Tick):
       HANDLED();
       break;
+    case EVENT(TransitionToB):
+      TRANSITION( B );
+      break;
     default:
       NO_PARENT();
       break;
@@ -297,6 +300,168 @@ void test_STATE_SingleUnhandledEvent( void )
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
 
+void test_STATE_TransitionSharedParent( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA1 ) );
+    TEST_ASSERT_EQUAL( history->fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A1 ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA1 ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
+    
+    STATE_UnitTestInit();
+    
+    state.state = STATE( A );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( B ) );
+}
+
+void test_STATE_TransitionNoSharedParent( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB0 ) );
+    TEST_ASSERT_EQUAL( history->fill, 5U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[4].state, STATE( B0 ) );
+    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[4].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[5].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( B0 ) );
+}
+
+void test_STATE_TransitionUpAndAcross( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( B ) );
+}
+
+void test_STATE_TransitionAcrossAndDown( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( B );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
+}
+
+void test_STATE_TransitionOutIntoParent( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA ) );
+    TEST_ASSERT_EQUAL( history->fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A ) );
+}
+
+void test_STATE_TransitionIntoItself( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
+}
+
 int main( void )
 {
     UNITY_BEGIN();
@@ -311,6 +476,12 @@ int main( void )
     RUN_TEST( test_STATE_Init );
     RUN_TEST( test_STATE_SingleEvent );
     RUN_TEST( test_STATE_SingleUnhandledEvent );
+    RUN_TEST( test_STATE_TransitionSharedParent );
+    RUN_TEST( test_STATE_TransitionNoSharedParent );
+    RUN_TEST( test_STATE_TransitionUpAndAcross );
+    RUN_TEST( test_STATE_TransitionAcrossAndDown );
+    RUN_TEST( test_STATE_TransitionOutIntoParent );
+    RUN_TEST( test_STATE_TransitionIntoItself );
 
     return UNITY_END();
 }
