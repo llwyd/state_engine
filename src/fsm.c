@@ -51,8 +51,8 @@ _Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer 
 
 typedef struct
 {
-    state_func_t * lca_out;
-    state_func_t * lca_in;
+    uint32_t out;
+    uint32_t in;
 }
 lca_t;
 
@@ -165,7 +165,10 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     return path_length;
 }
 
-static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ MAX_NESTED_STATES ], uint32_t out_depth, state_func_t out_path[ MAX_NESTED_STATES ] )
+static lca_t DetermineLCA( uint32_t in_depth, 
+        state_func_t in_path[ MAX_NESTED_STATES ], 
+        uint32_t out_depth, 
+        state_func_t out_path[ MAX_NESTED_STATES ] )
 {
     uint32_t min_depth = ( in_depth < out_depth ) ? in_depth : out_depth;
     min_depth++;
@@ -175,8 +178,8 @@ static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ MAX_NESTED_S
     uint32_t in_idx = in_depth;
     uint32_t out_idx = out_depth;
 
-    lca.lca_in = &in_path[in_idx];
-    lca.lca_out = &out_path[out_idx];
+    lca.in = in_idx;
+    lca.out = out_idx;
     for( uint32_t idx = 0U; idx < min_depth; idx++ )
     {
         if( in_path[in_idx] != out_path[out_idx] )
@@ -185,8 +188,8 @@ static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ MAX_NESTED_S
             break;
         }
         
-        lca.lca_in = &in_path[in_idx];
-        lca.lca_out = &out_path[out_idx];
+        lca.in = in_idx;
+        lca.out = out_idx;
         in_idx--;
         out_idx--;
     }
@@ -197,15 +200,15 @@ static lca_t DetermineLCA( uint32_t in_depth, state_func_t in_path[ MAX_NESTED_S
         /* 1. Is state trying to transition into itself? */
         if( in_path[0] == out_path[0] ) 
         {
-            lca.lca_in = &in_path[1];
-            lca.lca_out = &out_path[1];
+            lca.in = 1u;
+            lca.out = 1u;
             found_lca = true;
         }
         /* 2. Exit substate into parent state? */
         else if ( in_path[0] == out_path[1] )
         {
-            lca.lca_in = &in_path[0];
-            lca.lca_out = &out_path[1];
+            lca.in = 0u;
+            lca.out = 1u;
             found_lca = true;
         }
         else
@@ -250,28 +253,23 @@ extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
         const uint32_t out_depth = TraverseToRoot( state, path_out );
 
         lca_t lca = DetermineLCA( in_depth, path_in, out_depth, path_out );
-
-        state->state = source;
-        state_func_t * path = path_out;
-        do
-        {   
-            state->state = (*path);
-            (path++);
+        
+        for( uint32_t idx = 0; idx < lca.out; idx++ )
+        {
+            state->state = *path_out[idx];
             STATE_EXECUTE( state, EVENT( Exit ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
         }
-        while( (*path) != *lca.lca_out );
 
-
-        path = (lca.lca_in);
-       
-        while( (*path) != target )
+        uint32_t jdx = lca.in - 1U;
+        for( uint32_t idx = 0;  idx < ( lca.in - 0U ); idx++ )
         {
-            (path--);
-            state->state = (*path);
+            state->state = *path_in[jdx];
+            jdx--;
             STATE_EXECUTE( state, EVENT( Enter ) );
             STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
-        }         
+
+        }
         /* Reassign original state */    
         state->state = target;
     
