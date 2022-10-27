@@ -24,19 +24,21 @@
     RETURN( Unhandled ) \
     RETURN( Transition ) \
 
-//cppcheck-suppress misra-c2012-2.10
+//cppcheck-suppress misra-c2012-20.10
 #define SIGNAL_ENUM(x) event_##x,
-//cppcheck-suppress misra-c2012-2.10
+
+//cppcheck-suppress misra-c2012-20.10
 #define _SIGNAL_ENUM(x) event_##x
-//cppcheck-suppress misra-c2012-2.10
+
+//cppcheck-suppress misra-c2012-20.10
 #define RETURN_ENUM(x) return_##x
 #define EVENT(x) _SIGNAL_ENUM(x)
 
-//cppcheck-suppress misra-c2012-2.10
+//cppcheck-suppress misra-c2012-20.10
 #define STATE(x) State_##x
 #define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
 
-//cppcheck-suppress misra-c2012-2.10
+//cppcheck-suppress misra-c2012-20.10
 #define _SIGNAL_STR(x) #x
 #define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
 
@@ -149,7 +151,7 @@ struct state_t
     extern state_history_t * STATE_GetHistory ( void );
     extern void STATE_UnitTestInit(void);
     extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
-    extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ static MAX_NESTED_STATES ] );
+    extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
 #else
 
 #endif

@@ -56,7 +56,16 @@ typedef struct
 }
 lca_t;
 
+/* False positive MISRA violation */
+//cppcheck-suppress misra-c2012-8.2
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
+
+/* False positive MISRA violation */
+//cppcheck-suppress misra-c2012-8.2
+static lca_t DetermineLCA( uint32_t in_depth, 
+        state_func_t in_path[ MAX_NESTED_STATES ], 
+        uint32_t out_depth,
+        state_func_t out_path[ MAX_NESTED_STATES ] );
 
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
@@ -81,6 +90,7 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
 
 #ifdef UNIT_TESTS
     extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
+
 #else
     static void InitEventBuffer( state_fifo_t * const fsm_event ) 
 #endif
