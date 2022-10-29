@@ -56,6 +56,15 @@ typedef struct
 }
 lca_t;
 
+typedef enum
+{
+    STATE_TRANSITION_START,
+    STATE_TRANSITION_EXITING,
+    STATE_TRANSITION_ENTERING,
+    STATE_TRANSITION_COMPLETE,
+}
+state_transition_t;
+
 /* False positive MISRA violation */
 //cppcheck-suppress misra-c2012-8.2
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
@@ -232,6 +241,77 @@ static lca_t DetermineLCA( uint32_t in_depth,
     return lca;
 }
 
+static state_transition_t HandleTransition( state_transition_t current_state, 
+                                            state_func_t * const source,
+                                            state_func_t * const target,
+                                            state_func_t path_in[MAX_NESTED_STATES],
+                                            state_func_t path_out[MAX_NESTED_STATES] )
+{
+    state_t temp;
+    state_t * state = &temp;
+    static uint32_t in_depth;
+    static uint32_t out_depth;
+    static lca_t lca;
+    state_ret_t ret;
+
+    switch( current_state )
+    {
+        case STATE_TRANSITION_START:
+            /* Determine paths to root */
+            state->state = *target;
+            in_depth = TraverseToRoot( state, path_in );
+            state->state = *source;
+            out_depth = TraverseToRoot( state, path_out );
+            /* Find common ancestor */
+            lca = DetermineLCA( in_depth, path_in, out_depth, path_out );
+            /* Begin exiting */
+            current_state = STATE_TRANSITION_EXITING;
+            break;
+        case STATE_TRANSITION_EXITING:
+            current_state = STATE_TRANSITION_ENTERING;
+            for( uint32_t idx = 0; idx < lca.out; idx++ )
+            {
+                state->state = *path_out[idx];
+                STATE_EXECUTE( state, EVENT( Exit ) );
+                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
+                if( ret == RETURN_ENUM( Transition ) )
+                {
+                    *source = *path_out[idx];
+                    *target = state->state;
+                    current_state = STATE_TRANSITION_START;
+                    break;
+                }
+            }
+            break;
+        case STATE_TRANSITION_ENTERING:
+        {
+            current_state = STATE_TRANSITION_COMPLETE;
+            uint32_t jdx = lca.in - 1U;
+            for( uint32_t idx = 0;  idx < ( lca.in - 0U ); idx++ )
+            {
+                state->state = *path_in[jdx];
+                jdx--;
+                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
+                STATE_EXECUTE( state, EVENT( Enter ) );
+                if( ret == RETURN_ENUM( Transition ) )
+                {
+                    *source = *path_out[idx];
+                    *target = state->state;
+                    current_state = STATE_TRANSITION_START;
+                    break;
+                }
+            }
+        }
+            break;
+        case STATE_TRANSITION_COMPLETE:
+        default:
+            STATE_ASSERT( false );
+            break;
+    }
+
+    return current_state;
+}
+
 extern void FSM_Dispatch( state_t * state, event_t s )
 {
     STATE_ASSERT( state->state != NULL );
@@ -239,7 +319,7 @@ extern void FSM_Dispatch( state_t * state, event_t s )
     STATE_ASSERT( s != (event_t)EVENT( None ) );
 
     /* Always guaranteed to execute the first state */
-    const state_func_t source = state->state;
+    state_func_t source = state->state;
 
     state_ret_t ret;
     
@@ -253,34 +333,19 @@ extern void FSM_Dispatch( state_t * state, event_t s )
     if( ret == RETURN_ENUM( Transition ) )
     {
         /* Store the target state */
-        const state_func_t target = state->state; 
+        state_func_t target = state->state; 
     
         /* These hold the history up and down the state tree */
         state_func_t path_out[ MAX_NESTED_STATES ];
         state_func_t path_in[ MAX_NESTED_STATES ];
 
-        const uint32_t in_depth = TraverseToRoot( state, path_in );
-        state->state = source;
-        const uint32_t out_depth = TraverseToRoot( state, path_out );
+        state_transition_t transition_state = STATE_TRANSITION_START;
 
-        lca_t lca = DetermineLCA( in_depth, path_in, out_depth, path_out );
-        
-        for( uint32_t idx = 0; idx < lca.out; idx++ )
+        while( transition_state != STATE_TRANSITION_COMPLETE )
         {
-            state->state = *path_out[idx];
-            STATE_EXECUTE( state, EVENT( Exit ) );
-            STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
+            transition_state = HandleTransition( transition_state, &source, &target, path_in, path_out );
         }
 
-        uint32_t jdx = lca.in - 1U;
-        for( uint32_t idx = 0;  idx < ( lca.in - 0U ); idx++ )
-        {
-            state->state = *path_in[jdx];
-            jdx--;
-            STATE_EXECUTE( state, EVENT( Enter ) );
-            STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
-
-        }
         /* Reassign original state */    
         state->state = target;
     
