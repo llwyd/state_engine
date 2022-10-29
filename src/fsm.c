@@ -134,7 +134,8 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
     STATE_ASSERT( state->state == initial_state );
 }
 
-extern void FSM_Dispatch( state_t * state, event_t s )
+/* A 'simple' dispatch for a flat state machine */
+extern void FSM_FlatDispatch( state_t * state, event_t s )
 {
     state_func_t previous = state->state;
     state_ret_t ret = state->state( state, s );
@@ -231,7 +232,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
     return lca;
 }
 
-extern void FSM_HierarchicalDispatch( state_t * state, event_t s )
+extern void FSM_Dispatch( state_t * state, event_t s )
 {
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );

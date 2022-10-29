@@ -158,8 +158,8 @@ struct state_t
 extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
-extern void FSM_HierarchicalDispatch( state_t * state, event_t s );
 extern void FSM_Dispatch( state_t * state, event_t s );
+extern void FSM_FlatDispatch( state_t * state, event_t s );
 
 /* Event queuing */
 extern void FSM_FlushEvents( state_fifo_t * const fsm_event );

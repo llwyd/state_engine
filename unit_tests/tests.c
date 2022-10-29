@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "../src/fsm.h"
+#include "fsm.h"
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
@@ -269,7 +269,7 @@ void test_STATE_SingleEvent( void )
 
     state.state = STATE( A );
 
-    FSM_HierarchicalDispatch( &state, EVENT( Tick ) );
+    FSM_Dispatch( &state, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( history->fill, 1U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
     TEST_ASSERT_EQUAL( history->data[1].state, NULL );
@@ -287,7 +287,7 @@ void test_STATE_SingleUnhandledEvent( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( Tick ) );
+    FSM_Dispatch( &state, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE ( A ) );
@@ -308,7 +308,7 @@ void test_STATE_TransitionSharedParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA1 ) );
+    FSM_Dispatch( &state, EVENT( TransitionToA1 ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -326,7 +326,7 @@ void test_STATE_TransitionSharedParent( void )
     
     state.state = STATE( A );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB ) );
+    FSM_Dispatch( &state, EVENT( TransitionToB ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A ) );
@@ -349,7 +349,7 @@ void test_STATE_TransitionNoSharedParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB0 ) );
+    FSM_Dispatch( &state, EVENT( TransitionToB0 ) );
     TEST_ASSERT_EQUAL( history->fill, 5U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -376,7 +376,7 @@ void test_STATE_TransitionUpAndAcross( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToB ) );
+    FSM_Dispatch( &state, EVENT( TransitionToB ) );
     TEST_ASSERT_EQUAL( history->fill, 4U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -401,7 +401,7 @@ void test_STATE_TransitionAcrossAndDown( void )
 
     state.state = STATE( B );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA0 ) );
+    FSM_Dispatch( &state, EVENT( TransitionToA0 ) );
     TEST_ASSERT_EQUAL( history->fill, 4U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( B ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( B ) );
@@ -426,7 +426,7 @@ void test_STATE_TransitionOutIntoParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA ) );
+    FSM_Dispatch( &state, EVENT( TransitionToA ) );
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -447,7 +447,7 @@ void test_STATE_TransitionIntoItself( void )
 
     state.state = STATE( A0 );
 
-    FSM_HierarchicalDispatch( &state, EVENT( TransitionToA0 ) );
+    FSM_Dispatch( &state, EVENT( TransitionToA0 ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
