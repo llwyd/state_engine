@@ -7,6 +7,7 @@
   SIG( TransitionToA0 ) \
   SIG( TransitionToA1 ) \
   SIG( TransitionToB0 ) \
+  SIG( TransitionToB1 ) \
 
 #define STATES(ST) \
   ST( A ) \
@@ -14,6 +15,7 @@
   ST( A0 ) \
   ST( A1 ) \
   ST( B0 ) \
+  ST( B1 ) \
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
@@ -96,6 +98,9 @@ static state_ret_t State_A0( state_t * this, event_t s)
     case EVENT(TransitionToA0):
       TRANSITION( A0 );
       break;
+    case EVENT(TransitionToB1):
+      TRANSITION( B1 );
+      break;
     default:
       PARENT( A );
       break;
@@ -135,6 +140,28 @@ static state_ret_t State_B0( state_t * this, event_t s)
   {
     case EVENT(Enter):
       HANDLED();
+      break;
+    case EVENT(Exit):
+      HANDLED();
+      break;
+    case EVENT(TransitionToA0):
+      TRANSITION( A0 );
+      break;
+    default:
+      PARENT( B );
+      break;
+  }
+  return ret;
+}
+
+static state_ret_t State_B1( state_t * this, event_t s)
+{
+  state_ret_t ret;
+
+  switch( s )
+  {
+    case EVENT(Enter):
+      TRANSITION( A1 );
       break;
     case EVENT(Exit):
       HANDLED();
@@ -462,6 +489,41 @@ void test_STATE_TransitionIntoItself( void )
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
 
+void test_STATE_TransitionWhileEntering( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( A0 );
+
+    FSM_Dispatch( &state, EVENT( TransitionToB1 ) );
+    TEST_ASSERT_EQUAL( history->fill, 9U ); 
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[4].state, STATE( B1 ) );
+    TEST_ASSERT_EQUAL( history->data[5].state, STATE( B1 ) );
+    TEST_ASSERT_EQUAL( history->data[6].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->data[7].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[8].state, STATE( A1 ) );
+    TEST_ASSERT_EQUAL( history->data[9].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB1 ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[4].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[5].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[6].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[7].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[8].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[9].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
+}
+
 int main( void )
 {
     UNITY_BEGIN();
@@ -482,6 +544,7 @@ int main( void )
     RUN_TEST( test_STATE_TransitionAcrossAndDown );
     RUN_TEST( test_STATE_TransitionOutIntoParent );
     RUN_TEST( test_STATE_TransitionIntoItself );
+    RUN_TEST( test_STATE_TransitionWhileEntering );
 
     return UNITY_END();
 }

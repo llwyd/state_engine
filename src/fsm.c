@@ -257,6 +257,11 @@ static state_transition_t HandleTransition( state_transition_t current_state,
     switch( current_state )
     {
         case STATE_TRANSITION_START:
+            for( uint32_t idx = 0; idx < MAX_NESTED_STATES; idx++ )
+            {
+                path_in[idx] = NULL;
+                path_out[idx] = NULL;
+            }
             /* Determine paths to root */
             state->state = *target;
             in_depth = TraverseToRoot( state, path_in );
@@ -291,11 +296,11 @@ static state_transition_t HandleTransition( state_transition_t current_state,
             {
                 state->state = *path_in[jdx];
                 jdx--;
-                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
                 STATE_EXECUTE( state, EVENT( Enter ) );
+                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
                 if( ret == RETURN_ENUM( Transition ) )
                 {
-                    *source = *path_out[idx];
+                    *source = *path_in[jdx+1];
                     *target = state->state;
                     current_state = STATE_TRANSITION_START;
                     break;
