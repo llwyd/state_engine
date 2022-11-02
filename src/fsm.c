@@ -253,6 +253,7 @@ static state_transition_t HandleTransition( state_transition_t current_state,
     static uint32_t out_depth;
     static lca_t lca;
     state_ret_t ret;
+    state_transition_t return_state = current_state;
 
     switch( current_state )
     {
@@ -270,10 +271,10 @@ static state_transition_t HandleTransition( state_transition_t current_state,
             /* Find common ancestor */
             lca = DetermineLCA( in_depth, path_in, out_depth, path_out );
             /* Begin exiting */
-            current_state = STATE_TRANSITION_EXITING;
+            return_state = STATE_TRANSITION_EXITING;
             break;
         case STATE_TRANSITION_EXITING:
-            current_state = STATE_TRANSITION_ENTERING;
+            return_state = STATE_TRANSITION_ENTERING;
             for( uint32_t idx = 0; idx < lca.out; idx++ )
             {
                 state->state = *path_out[idx];
@@ -283,14 +284,14 @@ static state_transition_t HandleTransition( state_transition_t current_state,
                 {
                     *source = *path_out[idx];
                     *target = state->state;
-                    current_state = STATE_TRANSITION_START;
+                    return_state = STATE_TRANSITION_START;
                     break;
                 }
             }
             break;
         case STATE_TRANSITION_ENTERING:
         {
-            current_state = STATE_TRANSITION_COMPLETE;
+            return_state = STATE_TRANSITION_COMPLETE;
             uint32_t jdx = lca.in - 1U;
             for( uint32_t idx = 0;  idx < ( lca.in - 0U ); idx++ )
             {
@@ -300,9 +301,9 @@ static state_transition_t HandleTransition( state_transition_t current_state,
                 STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
                 if( ret == RETURN_ENUM( Transition ) )
                 {
-                    *source = *path_in[jdx+1];
+                    *source = *path_in[jdx + 1U];
                     *target = state->state;
-                    current_state = STATE_TRANSITION_START;
+                    return_state = STATE_TRANSITION_START;
                     break;
                 }
             }
@@ -314,7 +315,7 @@ static state_transition_t HandleTransition( state_transition_t current_state,
             break;
     }
 
-    return current_state;
+    return return_state;
 }
 
 extern void FSM_Dispatch( state_t * state, event_t s )
