@@ -209,16 +209,16 @@ void test_FIFO_AddRemoveEvent( void )
     TEST_ASSERT_EQUAL( events.read_index, 0U );
     TEST_ASSERT_EQUAL( events.write_index, 0U );
     TEST_ASSERT_EQUAL( events.fill, 0U );
-    TEST_ASSERT_FALSE( FSM_EventsAvailable( &events ) );
+    TEST_ASSERT_FALSE( STATEMACHINE_EventsAvailable( &events ) );
 
-    FSM_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( events.read_index, 0U );
     TEST_ASSERT_EQUAL( events.write_index, 1U );
     TEST_ASSERT_EQUAL( events.fill, 1U );
 
-    TEST_ASSERT_TRUE( FSM_EventsAvailable( &events ) );
+    TEST_ASSERT_TRUE( STATEMACHINE_EventsAvailable( &events ) );
 
-    event_t event = FSM_GetLatestEvent( &events );
+    event_t event = STATEMACHINE_GetLatestEvent( &events );
     TEST_ASSERT_EQUAL( event, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( events.read_index, 1U );
     TEST_ASSERT_EQUAL( events.write_index, 1U );
@@ -233,7 +233,7 @@ void test_FIFO_WrapAround( void )
     events.fill = 0;
 
 
-    FSM_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( events.read_index, (FIFO_BUFFER_SIZE - 1U ));
     TEST_ASSERT_EQUAL( events.write_index, 0U );
     TEST_ASSERT_EQUAL( events.fill, 1U );
@@ -244,21 +244,21 @@ void test_FIFO_Flush( void )
     state_fifo_t events;
     STATE_InitEventBuffer( &events );
     
-    FSM_AddEvent( &events, EVENT( Tick ) );
-    FSM_AddEvent( &events, EVENT( Tick ) );
-    FSM_AddEvent( &events, EVENT( Tick ) );
-    FSM_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
+    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
 
     TEST_ASSERT_EQUAL( events.read_index, 0U );
     TEST_ASSERT_EQUAL( events.write_index, 4U );
     TEST_ASSERT_EQUAL( events.fill, 4U );
-    TEST_ASSERT_TRUE( FSM_EventsAvailable( &events ) );
+    TEST_ASSERT_TRUE( STATEMACHINE_EventsAvailable( &events ) );
 
-    FSM_FlushEvents( &events );
+    STATEMACHINE_FlushEvents( &events );
     TEST_ASSERT_EQUAL( events.read_index, 4U );
     TEST_ASSERT_EQUAL( events.write_index, 4U );
     TEST_ASSERT_EQUAL( events.fill, 0U );
-    TEST_ASSERT_FALSE( FSM_EventsAvailable( &events ) );
+    TEST_ASSERT_FALSE( STATEMACHINE_EventsAvailable( &events ) );
 }
 
 void test_STATE_Init( void )
@@ -275,7 +275,7 @@ void test_STATE_Init( void )
      * StateA0 ->Enter
      */
 
-    FSM_Init( &state, &events , STATE( A0 ) );
+    STATEMACHINE_Init( &state, &events , STATE( A0 ) );
     
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
@@ -296,7 +296,7 @@ void test_STATE_SingleEvent( void )
 
     state.state = STATE( A );
 
-    FSM_Dispatch( &state, EVENT( Tick ) );
+    STATEMACHINE_Dispatch( &state, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( history->fill, 1U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
     TEST_ASSERT_EQUAL( history->data[1].state, NULL );
@@ -314,7 +314,7 @@ void test_STATE_SingleUnhandledEvent( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( Tick ) );
+    STATEMACHINE_Dispatch( &state, EVENT( Tick ) );
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE ( A ) );
@@ -335,7 +335,7 @@ void test_STATE_TransitionSharedParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToA1 ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA1 ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -353,7 +353,7 @@ void test_STATE_TransitionSharedParent( void )
     
     state.state = STATE( A );
 
-    FSM_Dispatch( &state, EVENT( TransitionToB ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A ) );
@@ -376,7 +376,7 @@ void test_STATE_TransitionNoSharedParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToB0 ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToB0 ) );
     TEST_ASSERT_EQUAL( history->fill, 5U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -403,7 +403,7 @@ void test_STATE_TransitionUpAndAcross( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToB ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
     TEST_ASSERT_EQUAL( history->fill, 4U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -428,7 +428,7 @@ void test_STATE_TransitionAcrossAndDown( void )
 
     state.state = STATE( B );
 
-    FSM_Dispatch( &state, EVENT( TransitionToA0 ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA0 ) );
     TEST_ASSERT_EQUAL( history->fill, 4U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( B ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( B ) );
@@ -453,7 +453,7 @@ void test_STATE_TransitionOutIntoParent( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToA ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA ) );
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -474,7 +474,7 @@ void test_STATE_TransitionIntoItself( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToA0 ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA0 ) );
     TEST_ASSERT_EQUAL( history->fill, 3U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
@@ -497,7 +497,7 @@ void test_STATE_TransitionWhileEntering( void )
 
     state.state = STATE( A0 );
 
-    FSM_Dispatch( &state, EVENT( TransitionToB1 ) );
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToB1 ) );
     TEST_ASSERT_EQUAL( history->fill, 9U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
     TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );

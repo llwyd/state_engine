@@ -155,17 +155,17 @@ struct state_t
 #else
 
 #endif
-extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
+extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
-extern void FSM_Dispatch( state_t * state, event_t s );
-extern void FSM_FlatDispatch( state_t * state, event_t s );
+extern void STATEMACHINE_Dispatch( state_t * state, event_t s );
+extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s );
 
 /* Event queuing */
-extern void FSM_FlushEvents( state_fifo_t * const fsm_event );
-extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s);
-extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event );
-extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event );
+extern void STATEMACHINE_FlushEvents( state_fifo_t * const fsm_event );
+extern void STATEMACHINE_AddEvent( state_fifo_t * const fsm_event, event_t s);
+extern event_t STATEMACHINE_GetLatestEvent( state_fifo_t * const fsm_event );
+extern bool STATEMACHINE_EventsAvailable( const state_fifo_t * const fsm_event );
 
 
 #endif /* STATE_H_ */

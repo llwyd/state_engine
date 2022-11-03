@@ -120,7 +120,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
     STATE_EXIT_CRITICAL;
 }
 
-extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
+extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
     STATE_ASSERT( state != NULL );
     STATE_ASSERT( fsm_event != NULL );
@@ -153,7 +153,7 @@ extern void FSM_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*i
 }
 
 /* A 'simple' dispatch for a flat state machine */
-extern void FSM_FlatDispatch( state_t * state, event_t s )
+extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
 {
     state_func_t previous = state->state;
     state_ret_t ret = state->state( state, s );
@@ -362,7 +362,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
     return ret;
 }
 
-extern void FSM_Dispatch( state_t * state, event_t s )
+extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
 {
     STATE_ASSERT( state->state != NULL );
     STATE_ASSERT( state != NULL );
@@ -403,7 +403,7 @@ extern void FSM_Dispatch( state_t * state, event_t s )
     
         /* Dogfooding to handle transition */
         transition.state.state = STATE( TransitionStart );
-        FSM_FlatDispatch( &transition.state, EVENT( Enter ) );
+        STATEMACHINE_FlatDispatch( &(transition.state), EVENT( Enter ) );
 
         /* Reassign original state */    
         state->state = transition.target;
@@ -417,7 +417,7 @@ extern void FSM_Dispatch( state_t * state, event_t s )
 
 }
 
-extern void FSM_FlushEvents( state_fifo_t * const fsm_event )
+extern void STATEMACHINE_FlushEvents( state_fifo_t * const fsm_event )
 {
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill > 0U )
@@ -429,7 +429,7 @@ extern void FSM_FlushEvents( state_fifo_t * const fsm_event )
     }
 }
 
-extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s )
+extern void STATEMACHINE_AddEvent( state_fifo_t * const fsm_event, event_t s )
 {
     STATE_ASSERT( fsm_event != NULL );
     if( fsm_event->fill < FIFO_BUFFER_SIZE )
@@ -443,13 +443,13 @@ extern void FSM_AddEvent( state_fifo_t * const fsm_event, event_t s )
     }
 }
 
-extern bool FSM_EventsAvailable( const state_fifo_t * const fsm_event )
+extern bool STATEMACHINE_EventsAvailable( const state_fifo_t * const fsm_event )
 {
     STATE_ASSERT( fsm_event != NULL );
     return ( fsm_event->fill > 0U );
 }
 
-extern event_t FSM_GetLatestEvent( state_fifo_t * const fsm_event )
+extern event_t STATEMACHINE_GetLatestEvent( state_fifo_t * const fsm_event )
 {
     event_t s;
     STATE_ASSERT( fsm_event != NULL );
