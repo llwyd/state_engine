@@ -1,12 +1,12 @@
 /*
  *
- * FSM Engine
+ * State Machine Engine
  *
  * T.L. 2022
  *
  */
 
-#include "fsm.h"
+#include "state.h"
 
 #ifdef UNIT_TESTS
     #include <string.h>

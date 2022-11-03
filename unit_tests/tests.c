@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "fsm.h"
+#include "state.h"
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
