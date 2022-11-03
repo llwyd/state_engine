@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "fsm.h"
+#include "state.h"
 
 
 #define SIGNALS(SIG) \
@@ -160,20 +160,20 @@ int main( void )
   state_t state_machine;
   state_fifo_t events;
 
-  FSM_Init( &state_machine, &events, STATE( A0 ) );  
+  STATEMACHINE_Init( &state_machine, &events, STATE( A0 ) );  
   
-  FSM_Dispatch( &state_machine, EVENT(Tick));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToB));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA0));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA1));
-  FSM_Dispatch( &state_machine, EVENT(Tick));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA0));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToB0));
-  FSM_Dispatch( &state_machine, EVENT(Tick));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA0));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA0));
-  FSM_Dispatch( &state_machine, EVENT(TransitionToA));
-  FSM_Dispatch( &state_machine, EVENT(Tick));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(Tick));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToB));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA0));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA1));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(Tick));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA0));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToB0));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(Tick));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA0));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA0));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(TransitionToA));
+  STATEMACHINE_Dispatch( &state_machine, EVENT(Tick));
 
   return 0;
 }
