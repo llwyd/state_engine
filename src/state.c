@@ -87,8 +87,6 @@ static lca_t DetermineLCA( uint32_t in_depth,
 
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
-
-    
     static state_history_t state_history;
 
     extern void STATE_UnitTestInit( void );
@@ -103,15 +101,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
     #define STATE_EXECUTE( current_state, event ) ret = (current_state)->state( (current_state), (event) )
 #endif
 
-
-
-
-#ifdef UNIT_TESTS
-    extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
-
-#else
-    static void InitEventBuffer( state_fifo_t * const fsm_event ) 
-#endif
+static void InitEventBuffer( state_fifo_t * const fsm_event ) 
 {
     STATE_ENTER_CRITICAL;
     fsm_event->read_index = 0U;
@@ -127,13 +117,10 @@ extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_
     STATE_ASSERT( initial_state != NULL );
 
     state_func_t init_path[ MAX_NESTED_STATES ];
-#ifdef UNIT_TESTS
-    STATE_InitEventBuffer( fsm_event );
-#else
-    InitEventBuffer( fsm_event );
-#endif
     state->state = initial_state;
     state_ret_t ret;
+    
+    InitEventBuffer( fsm_event );
 
     uint32_t idx = TraverseToRoot( state, init_path );
 
@@ -511,6 +498,11 @@ static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * st
 extern state_history_t * STATE_GetHistory( void )
 {
     return &state_history;
+}
+
+extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
+{
+    InitEventBuffer( fsm_event );
 }
 
 #endif
