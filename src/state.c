@@ -246,6 +246,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
 static state_ret_t State_TransitionStart( state_t * this, event_t s )
 {
     state_ret_t ret;
+    HANDLED();
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
@@ -280,6 +281,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
 static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 {
     state_ret_t ret;
+    HANDLED();
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
@@ -322,6 +324,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 static state_ret_t State_TransitionExiting( state_t * this, event_t s )
 {
     state_ret_t ret;
+    HANDLED();
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
