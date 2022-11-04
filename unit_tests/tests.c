@@ -16,6 +16,7 @@
   ST( A1 ) \
   ST( B0 ) \
   ST( B1 ) \
+  ST( C ) \
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
@@ -173,6 +174,32 @@ static state_ret_t State_B1( state_t * this, event_t s)
       PARENT( B );
       break;
   }
+  return ret;
+}
+
+static state_ret_t State_C( state_t * this, event_t s)
+{
+  state_ret_t ret;
+
+  switch( s )
+  {
+    case EVENT(Enter):
+      HANDLED();
+      break;
+    case EVENT(Exit):
+      TRANSITION( A0 );
+      break;
+    case EVENT(Tick):
+      HANDLED();
+      break;
+    case EVENT(TransitionToB):
+      TRANSITION( B );
+      break;
+    default:
+      NO_PARENT();
+      break;
+  }
+
   return ret;
 }
 
@@ -524,6 +551,31 @@ void test_STATE_TransitionWhileEntering( void )
     TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
 }
 
+void test_STATE_TransitionWhileExiting( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    state_history_t * history = STATE_GetHistory();
+
+    state.state = STATE( C );
+
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->data[0].state, STATE( C ) );
+    TEST_ASSERT_EQUAL( history->data[1].state, STATE( C ) );
+    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->data[3].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->data[4].state, NULL );
+    TEST_ASSERT_EQUAL( history->fill, 4U ); 
+    
+    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
+}
+
 int main( void )
 {
     UNITY_BEGIN();
@@ -545,6 +597,7 @@ int main( void )
     RUN_TEST( test_STATE_TransitionOutIntoParent );
     RUN_TEST( test_STATE_TransitionIntoItself );
     RUN_TEST( test_STATE_TransitionWhileEntering );
+    RUN_TEST( test_STATE_TransitionWhileExiting );
 
     return UNITY_END();
 }

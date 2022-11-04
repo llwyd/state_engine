@@ -171,7 +171,6 @@ extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] )
 {
     STATE_ASSERT( source != NULL );
-    STATE_ASSERT( source->state != NULL );
     STATE_ASSERT( path != NULL );
 
     state_ret_t ret;
@@ -240,6 +239,13 @@ static lca_t DetermineLCA( uint32_t in_depth,
             lca.out = 1u;
             found_lca = true;
         }
+        /* 3. All out states are NULL, which will happen if transition upon exit */
+        else if( out_path[0] == NULL )
+        {
+            lca.in = in_depth;
+            lca.out = 0;
+            found_lca = true;
+        }
         else
         {
             /* Nowt */
@@ -294,6 +300,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
         case EVENT( Enter ):
         {
             uint32_t jdx = transition->lca.in - 1U;
+            HANDLED();
             for( uint32_t idx = 0;  idx < ( transition->lca.in - 0U ); idx++ )
             {
                 transition->state.state = *transition->path_in[jdx];
@@ -334,6 +341,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
     {
         case EVENT( Enter ):
         {
+            TRANSITION( TransitionEntering );
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->state.state = *transition->path_out[idx];
@@ -341,7 +349,16 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                 STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
                 if( ret == RETURN_ENUM( Transition ) )
                 {
-                    transition->source = *transition->path_out[idx];
+                    uint32_t next_state = idx + 1;
+                    if( next_state < MAX_NESTED_STATES )
+                    {
+                        transition->source = *transition->path_out[next_state];
+                    }
+                    else
+                    {
+                        transition->source = NULL;
+                    }
+                    
                     transition->target = transition->state.state;
                     TRANSITION( TransitionStart );
                     break;
