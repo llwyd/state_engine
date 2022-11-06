@@ -49,6 +49,8 @@ _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be gre
 _Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" );
 _Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer size must be power of two" );
 
+#define META_TRANSITION( new_state ) transition->state.state = STATE(new_state);  ret = RETURN( Transition )
+
 typedef struct
 {
     uint32_t out;
@@ -133,7 +135,7 @@ extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_
         STATE_ASSERT( idx > 0U );
         state->state = *init_path[ idx - 1U ];
         STATE_EXECUTE( state, EVENT( Enter ) );
-        STATE_ASSERT( ret == RETURN_ENUM( Handled ) );
+        STATE_ASSERT( ret == RETURN( Handled ) );
     }
 
     STATE_ASSERT( state->state == initial_state );
@@ -145,9 +147,9 @@ extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
     state_func_t previous = state->state;
     state_ret_t ret = state->state( state, s );
 
-    STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
+    STATE_ASSERT( ret != RETURN( Unhandled ) );
 
-    while ( ret == RETURN_ENUM( Transition ) )
+    while ( ret == RETURN( Transition ) )
     {
         previous( state, event_Exit );
         previous = state->state;
@@ -174,7 +176,7 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
 
         STATE_ASSERT( source->state != NULL );
         ret = source->state( source, EVENT( None ) );
-        STATE_ASSERT( ret == RETURN_ENUM( Unhandled ) );
+        STATE_ASSERT( ret == RETURN( Unhandled ) );
     }
 
     return path_length;
@@ -266,7 +268,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
             /* Find common ancestor */
             transition->lca = DetermineLCA( transition->in_depth, transition->path_in, transition->out_depth, transition->path_out );
             /* Begin exiting */
-            TRANSITION( TransitionExiting );
+            META_TRANSITION( TransitionExiting );
         }
             break;
         case EVENT( None ):
@@ -295,12 +297,12 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
                 transition->state.state = *transition->path_in[jdx];
                 jdx--;
                 STATE_EXECUTE( &transition->state, EVENT( Enter ) );
-                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
-                if( ret == RETURN_ENUM( Transition ) )
+                STATE_ASSERT( ret != RETURN( Unhandled ) );
+                if( ret == RETURN( Transition ) )
                 {
                     transition->source = *transition->path_in[jdx + 1U];
                     transition->target = transition->state.state;
-                    TRANSITION( TransitionStart );
+                    META_TRANSITION( TransitionStart );
                     break;
                 }
                 else
@@ -331,13 +333,13 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
     {
         case EVENT( Enter ):
         {
-            TRANSITION( TransitionEntering );
+            META_TRANSITION( TransitionEntering );
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->state.state = *transition->path_out[idx];
                 STATE_EXECUTE( &transition->state, EVENT( Exit ) );
-                STATE_ASSERT( ret != RETURN_ENUM( Unhandled ) );
-                if( ret == RETURN_ENUM( Transition ) )
+                STATE_ASSERT( ret != RETURN( Unhandled ) );
+                if( ret == RETURN( Transition ) )
                 {
                     uint32_t next_state = idx + 1;
                     if( next_state < MAX_NESTED_STATES )
@@ -350,12 +352,12 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                     }
                     
                     transition->target = transition->state.state;
-                    TRANSITION( TransitionStart );
+                    META_TRANSITION( TransitionStart );
                     break;
                 }
                 else
                 {
-                    TRANSITION( TransitionEntering );
+                    META_TRANSITION( TransitionEntering );
                 }
             } 
         }
@@ -382,12 +384,12 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
     
     STATE_EXECUTE( state, s );
 
-    while( ( ret == RETURN_ENUM( Unhandled ) ) && ( state->state != NULL ) )
+    while( ( ret == RETURN( Unhandled ) ) && ( state->state != NULL ) )
     {
         STATE_EXECUTE( state, s );
     }
 
-    if( ret == RETURN_ENUM( Transition ) )
+    if( ret == RETURN( Transition ) )
     {
         /* Store the target state */
         state_func_t target = state->state; 

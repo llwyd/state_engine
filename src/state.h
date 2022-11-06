@@ -19,59 +19,59 @@
     SIGNAL( Exit ) \
 
 #define STATE_RETURN_CODES \
-    RETURN( None ) \
-    RETURN( Handled ) \
-    RETURN( Unhandled ) \
-    RETURN( Transition ) \
+    RETURN_CODE( None ) \
+    RETURN_CODE( Handled ) \
+    RETURN_CODE( Unhandled ) \
+    RETURN_CODE( Transition ) \
 
 //cppcheck-suppress misra-c2012-20.10
 #define SIGNAL_ENUM(x) event_##x,
 
 //cppcheck-suppress misra-c2012-20.10
-#define _SIGNAL_ENUM(x) event_##x
+#define SIGNAL_ENUM_(x) event_##x
 
 //cppcheck-suppress misra-c2012-20.10
-#define RETURN_ENUM(x) return_##x
-#define EVENT(x) _SIGNAL_ENUM(x)
+#define RETURN(x) return_##x
+#define EVENT(x) SIGNAL_ENUM_(x)
 
 //cppcheck-suppress misra-c2012-20.10
 #define STATE(x) State_##x
-#define _STATE_PROTOTYPE(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
+#define STATE_PROTOTYPE_(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
 
 //cppcheck-suppress misra-c2012-20.10
-#define _SIGNAL_STR(x) #x
-#define _SIGNAL_LOOKUP(x) [_SIGNAL_ENUM(x)] = _SIGNAL_STR(x),
+#define SIGNAL_STR_(x) #x
+#define SIGNAL_LOOKUP_(x) [SIGNAL_ENUM_(x)] = SIGNAL_STR_(x),
 
 #define GENERATE_SIGNALS( SIG ) \
     enum Signal \
     { \
-        _SIGNAL_ENUM( Tick ) = SIGNAL_ENUM( DefaultCount ) \
+        SIGNAL_ENUM_( Tick ) = SIGNAL_ENUM( DefaultCount ) \
         SIG( SIGNAL_ENUM ) \
-        _SIGNAL_ENUM( EventCount ) \
+        SIGNAL_ENUM_( EventCount ) \
     }
 
-#define GENERATE_SIGNAL_STRINGS( SIG ) \
+#define GENERATESIGNAL_STR_INGS( SIG ) \
     static const char *event_str[] = \
     { \
-        DEFAULT_SIGNALS( _SIGNAL_LOOKUP ) \
-        _SIGNAL_LOOKUP( Tick ) \
-        SIG( _SIGNAL_LOOKUP ) \
+        DEFAULT_SIGNALS( SIGNAL_LOOKUP_ ) \
+        SIGNAL_LOOKUP_( Tick ) \
+        SIG( SIGNAL_LOOKUP_ ) \
     } \
 
 #define GENERATE_STATE_PROTOTYPES( ST ) \
-    ST( _STATE_PROTOTYPE ) \
+    ST( STATE_PROTOTYPE_ ) \
 
 
 #define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
 
 //cppcheck-suppress misra-c2012-2.5
-#define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN_ENUM( Unhandled )
+#define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN( Unhandled )
 //cppcheck-suppress misra-c2012-2.5
-#define TRANSITION( new_state ) this->state = STATE(new_state);  ret = RETURN_ENUM( Transition )
+#define TRANSITION( new_state ) this->state = STATE(new_state);  ret = RETURN( Transition )
 //cppcheck-suppress misra-c2012-2.5
-#define HANDLED() ret = RETURN_ENUM ( Handled )
+#define HANDLED() ret = RETURN ( Handled )
 //cppcheck-suppress misra-c2012-2.5
-#define NO_PARENT() this->state = NULL; ret = RETURN_ENUM( Unhandled )
+#define NO_PARENT() this->state = NULL; ret = RETURN( Unhandled )
 
 
 /* Platform Specific Stuff */
@@ -97,9 +97,9 @@ enum DefaultSignals
 
 typedef enum
 {
-    #define RETURN(x) RETURN_ENUM(x),
+    #define RETURN_CODE(x) RETURN(x),
         STATE_RETURN_CODES
-    #undef RETURN
+    #undef RETURN_CODE
 }
 state_ret_t;
 
