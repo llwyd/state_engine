@@ -4,3 +4,4 @@ experiments/fsm_xmacro
 unity/
 unit_tests/tests
 xmacro/fsm_xmacro
+esp32/
