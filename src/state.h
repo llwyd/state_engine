@@ -50,7 +50,7 @@
         SIGNAL_ENUM_( EventCount ) \
     }
 
-#define GENERATESIGNAL_STR_INGS( SIG ) \
+#define GENERATE_SIGNAL_STRINGS( SIG ) \
     static const char *event_str[] = \
     { \
         DEFAULT_SIGNALS( SIGNAL_LOOKUP_ ) \
@@ -79,7 +79,6 @@
 
 
 #elif TARGET_ESP32
-#error "Esp32 target not yet supported"
 
 #else
 

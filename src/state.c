@@ -27,8 +27,17 @@
         } 
 
 #elif TARGET_ESP32
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <assert.h>
+    
     #define STATE_ENTER_CRITICAL {  }
     #define STATE_EXIT_CRITICAL  {  }
+    
+    #define STATE_ASSERT( c ) \
+    { \
+        assert( (c) ); \
+    } 
 #else
 //cppcheck-suppress misra-c2012-21.6
     #include <stdio.h>
@@ -115,14 +124,16 @@ static void InitEventBuffer( state_fifo_t * const fsm_event )
 extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
     STATE_ASSERT( state != NULL );
-    STATE_ASSERT( fsm_event != NULL );
     STATE_ASSERT( initial_state != NULL );
 
     state_func_t init_path[ MAX_NESTED_STATES ];
     state->state = initial_state;
     state_ret_t ret;
-    
-    InitEventBuffer( fsm_event );
+
+    if( fsm_event != NULL )
+    {    
+        InitEventBuffer( fsm_event );
+    }
 
     uint32_t idx = TraverseToRoot( state, init_path );
 
@@ -460,7 +471,7 @@ extern bool STATEMACHINE_EventsAvailable( const state_fifo_t * const fsm_event )
 
 extern event_t STATEMACHINE_GetLatestEvent( state_fifo_t * const fsm_event )
 {
-    event_t s;
+    event_t s = EVENT( None );
     STATE_ASSERT( fsm_event != NULL );
 
     STATE_ENTER_CRITICAL;
