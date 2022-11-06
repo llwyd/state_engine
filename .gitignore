@@ -4,4 +4,7 @@ experiments/fsm_xmacro
 unity/
 unit_tests/tests
 xmacro/fsm_xmacro
-esp32/
+
+*.bin
+esp32/build/*
+esp32/main/build/*
