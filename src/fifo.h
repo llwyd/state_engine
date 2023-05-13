@@ -24,6 +24,8 @@ fifo_base_t;
 #define FIFO_FUNC_PEEK(x) FIFO_PEEK##x
 
 #define CREATE_FIFO( NAME, FIFO_TYPE, DATA_TYPE, LEN ) \
+    _Static_assert( LEN > 0U, "FIFO Length must be greater than zero"); \
+    _Static_assert( (LEN & (LEN - 1U )) == 0U, "FIFO Length must be power of 2"); \
     typedef struct \
     { \
         fifo_base_t base; \
