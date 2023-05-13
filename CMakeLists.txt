@@ -30,4 +30,5 @@ target_compile_options( tests.out
                         #-Wpedantic
                         -Wpointer-arith
                         -g
-                        -DUNIT_TESTS )
+                        -DUNIT_TESTS
+                        -DUNITY_OUTPUT_COLOR )
