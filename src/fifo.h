@@ -14,9 +14,10 @@ typedef struct
 }
 fifo_base_t;
 
-/* TODO: Critical Sections */
+/* TODO: Critical Sections, check fill, flush */
 
 #define FIFO_PASS_PTR(x) x * fifo
+#define FIFO_PASS_DATA(x) x data
 #define FIFO_FUNC_INIT(x) FIFO_Init##x
 #define FIFO_FUNC_DEQ(x) FIFO_DEQ##x
 #define FIFO_FUNC_ENQ(x) FIFO_ENQ##x
@@ -50,8 +51,16 @@ fifo_base_t;
         fifo->base.r_index = ( fifo->base.r_index & ( LEN - 1U ) ); \
         \
         return ret; \
-    }  
-
-    
+    } \
+    \
+    void FIFO_FUNC_ENQ(NAME) (FIFO_PASS_PTR(FIFO_TYPE), FIFO_PASS_DATA(DATA_TYPE)) \
+    { \
+        assert( fifo != NULL ); \
+        assert( fifo->base.fill < LEN ); \
+        fifo->queue[ fifo->base.w_index ] = data; \
+        fifo->base.w_index++; \
+        fifo->base.fill++; \
+        fifo->base.w_index = ( fifo->base.w_index & ( LEN - 1U ) ); \
+    } 
 
 #endif /* FIFO_H_ */
