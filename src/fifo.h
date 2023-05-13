@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 typedef struct 
 {
@@ -14,7 +15,10 @@ typedef struct
 fifo_base_t;
 
 #define FIFO_PASS_PTR(x) x * fifo
-#define FIFO_FUNC_INIT(x) FIFO_##x
+#define FIFO_FUNC_INIT(x) FIFO_Init##x
+#define FIFO_FUNC_DEQ(x) FIFO_DEQ##x
+#define FIFO_FUNC_ENQ(x) FIFO_ENQ##x
+#define FIFO_FUNC_PEEK(x) FIFO_PEEK##x
 
 #define CREATE_FIFO( NAME, FIFO_TYPE, DATA_TYPE, LEN ) \
     typedef struct \
