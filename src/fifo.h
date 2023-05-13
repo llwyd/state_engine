@@ -14,7 +14,7 @@ typedef struct
 }
 fifo_base_t;
 
-/* TODO: Critical Sections, check fill, flush */
+/* TODO: Critical Sections, check fill, flush, power of 2 check, > 0 check */
 
 #define FIFO_PASS_PTR(x) x * fifo
 #define FIFO_PASS_DATA(x) x data
