@@ -578,9 +578,8 @@ static void test_STATE_TransitionWhileExiting( void )
 }
 
 
-extern int STATETestSuite(void)
+extern void STATETestSuite(void)
 {
-    UNITY_BEGIN();
     RUN_TEST( test_STATE_Preprocessor );
 
     RUN_TEST( test_FIFO_Init );
@@ -600,5 +599,4 @@ extern int STATETestSuite(void)
     RUN_TEST( test_STATE_TransitionWhileEntering );
     RUN_TEST( test_STATE_TransitionWhileExiting );
 
-    return UNITY_END();
 }

@@ -1,6 +1,6 @@
 #ifndef STATE_TESTS_H
 #define STATE_TESTS_H
 
-extern int STATETestSuite(void);
+extern void STATETestSuite(void);
 
 #endif /* STATE_TESTS_H */

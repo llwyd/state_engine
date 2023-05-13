@@ -90,17 +90,12 @@ void test_FIFO_DequeueMany(void)
     }
 }
 
-extern int FIFOTestSuite(void)
+extern void FIFOTestSuite(void)
 {
-    UNITY_BEGIN();
-
     RUN_TEST(test_FIFO_Init);
     RUN_TEST(test_FIFO_Enqueue);
     RUN_TEST(test_FIFO_Dequeue);
     RUN_TEST(test_FIFO_EnqueueMany);
     RUN_TEST(test_FIFO_DequeueMany);
-
-    return UNITY_END();
-
 }
 

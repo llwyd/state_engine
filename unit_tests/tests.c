@@ -1,11 +1,13 @@
 #include "state_tests.h"
 #include "fifo_tests.h"
-
+#include "unity.h"
 
 int main( void )
 {
+    UNITY_BEGIN();
+
     FIFOTestSuite();
     STATETestSuite();
 
-    return 0U;
+    return UNITY_END();
 }
