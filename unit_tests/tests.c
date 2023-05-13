@@ -1,5 +1,6 @@
 #include "unity.h"
 #include "state.h"
+#include "fifo.h"
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
@@ -20,6 +21,8 @@
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
+
+CREATE_FIFO(Int,test_fifo_t, uint32_t, 32 );
 
 static state_ret_t State_A( state_t * this, event_t s)
 {
@@ -576,6 +579,17 @@ void test_STATE_TransitionWhileExiting( void )
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
 
+void test_NEWFIFO(void)
+{
+    test_fifo_t f;
+    FIFO_Int(&f);
+
+    TEST_ASSERT_EQUAL( 32U, f.base.max );
+    TEST_ASSERT_EQUAL( 0U, f.base.fill );
+    TEST_ASSERT_EQUAL( 0U, f.base.r_index );
+    TEST_ASSERT_EQUAL( 0U, f.base.w_index );
+}
+
 int main( void )
 {
     UNITY_BEGIN();
@@ -586,6 +600,8 @@ int main( void )
     RUN_TEST( test_FIFO_AddRemoveEvent );
     RUN_TEST( test_FIFO_WrapAround );
     RUN_TEST( test_FIFO_Flush );
+    
+    RUN_TEST( test_NEWFIFO );
 
     RUN_TEST( test_STATE_Init );
     RUN_TEST( test_STATE_SingleEvent );
