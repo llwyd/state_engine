@@ -8,3 +8,9 @@ xmacro/fsm_xmacro
 *.bin
 esp32/build/*
 esp32/main/build/*
+
+bin/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
