@@ -90,6 +90,29 @@ void test_FIFO_DequeueMany(void)
     }
 }
 
+void test_FIFO_NotEmpty(void)
+{
+    test_fifo_t fifo;
+    FIFO_InitUInt32(&fifo);
+
+    TEST_ASSERT_FALSE( FIFO_NEUInt32(&fifo));
+    FIFO_ENQUInt32(&fifo,0xFFFFFFFF);
+    TEST_ASSERT_TRUE( FIFO_NEUInt32(&fifo));
+}
+
+void test_FIFO_IsFull(void)
+{
+    test_fifo_t fifo;
+    FIFO_InitUInt32(&fifo);
+
+    for( uint32_t idx = 0; idx < 32; idx++ )
+    {
+        TEST_ASSERT_FALSE(FIFO_ISFULLUInt32(&fifo));
+        FIFO_ENQUInt32(&fifo, 0x12345678);
+    }
+    TEST_ASSERT_TRUE(FIFO_ISFULLUInt32(&fifo));
+}
+
 extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
@@ -97,5 +120,7 @@ extern void FIFOTestSuite(void)
     RUN_TEST(test_FIFO_Dequeue);
     RUN_TEST(test_FIFO_EnqueueMany);
     RUN_TEST(test_FIFO_DequeueMany);
+    RUN_TEST(test_FIFO_NotEmpty);
+    RUN_TEST(test_FIFO_IsFull);
 }
 
