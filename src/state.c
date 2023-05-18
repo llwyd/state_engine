@@ -55,8 +55,6 @@
 
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
-_Static_assert( FIFO_BUFFER_SIZE > 0U, "Buffer size must be greater than zero" );
-_Static_assert( ( FIFO_BUFFER_SIZE & ( FIFO_BUFFER_SIZE - 1U ) ) == 0U, "Buffer size must be power of two" );
 
 #define META_TRANSITION( new_state ) transition->state.state = STATE(new_state);  ret = RETURN( Transition )
 
@@ -112,16 +110,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
     #define STATE_EXECUTE( current_state, event ) ret = (current_state)->state( (current_state), (event) )
 #endif
 
-static void InitEventBuffer( state_fifo_t * const fsm_event ) 
-{
-    STATE_ENTER_CRITICAL;
-    fsm_event->read_index = 0U;
-    fsm_event->write_index = 0U;
-    fsm_event->fill = 0U;
-    STATE_EXIT_CRITICAL;
-}
-
-extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) )
+extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
     STATE_ASSERT( state != NULL );
     STATE_ASSERT( initial_state != NULL );
@@ -129,11 +118,6 @@ extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_
     state_func_t init_path[ MAX_NESTED_STATES ];
     state->state = initial_state;
     state_ret_t ret;
-
-    if( fsm_event != NULL )
-    {    
-        InitEventBuffer( fsm_event );
-    }
 
     uint32_t idx = TraverseToRoot( state, init_path );
 
@@ -437,57 +421,6 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
 
 }
 
-extern void STATEMACHINE_FlushEvents( state_fifo_t * const fsm_event )
-{
-    STATE_ASSERT( fsm_event != NULL );
-    if( fsm_event->fill > 0U )
-    {
-        STATE_ENTER_CRITICAL;
-        fsm_event->read_index = fsm_event->write_index;
-        fsm_event->fill = 0U;
-        STATE_EXIT_CRITICAL;
-    }
-}
-
-extern void STATEMACHINE_AddEvent( state_fifo_t * const fsm_event, event_t s )
-{
-    STATE_ASSERT( fsm_event != NULL );
-    if( fsm_event->fill < FIFO_BUFFER_SIZE )
-    {
-        STATE_ENTER_CRITICAL;
-        fsm_event->event[ fsm_event->write_index ] = s;
-        fsm_event->write_index++;
-        fsm_event->fill++;
-        fsm_event->write_index = ( fsm_event->write_index & ( FIFO_BUFFER_SIZE - 1U ) );
-        STATE_EXIT_CRITICAL;
-    }
-}
-
-extern bool STATEMACHINE_EventsAvailable( const state_fifo_t * const fsm_event )
-{
-    STATE_ASSERT( fsm_event != NULL );
-    return ( fsm_event->fill > 0U );
-}
-
-extern event_t STATEMACHINE_GetLatestEvent( state_fifo_t * const fsm_event )
-{
-    event_t s = EVENT( None );
-    STATE_ASSERT( fsm_event != NULL );
-
-    STATE_ENTER_CRITICAL;
-    if( fsm_event->fill > 0U )
-    {
-        s = fsm_event->event[ fsm_event->read_index ];
-        fsm_event->read_index++;
-        fsm_event->fill--;
-        fsm_event->read_index = ( fsm_event->read_index & ( FIFO_BUFFER_SIZE - 1U ) );
-    }
-    STATE_EXIT_CRITICAL;
-
-    return s;
-}
-
-
 #ifdef UNIT_TESTS
 extern void STATE_UnitTestInit( void )
 {
@@ -514,11 +447,6 @@ static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * st
 extern state_history_t * STATE_GetHistory( void )
 {
     return &state_history;
-}
-
-extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event )
-{
-    InitEventBuffer( fsm_event );
 }
 
 #endif

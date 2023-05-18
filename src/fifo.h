@@ -24,6 +24,7 @@ fifo_base_t;
 #define FIFO_FUNC_PEEK(x) FIFO_PEEK##x
 #define FIFO_FUNC_FULL(x) FIFO_ISFULL##x
 #define FIFO_FUNC_NE(x) FIFO_NE##x
+#define FIFO_FUNC_FLUSH(x) FIFO_FLUSH##x
 
 #define CREATE_FIFO( NAME, FIFO_TYPE, DATA_TYPE, LEN ) \
     _Static_assert( LEN > 0U, "FIFO Length must be greater than zero"); \
@@ -75,6 +76,12 @@ fifo_base_t;
     bool FIFO_FUNC_FULL(NAME) (FIFO_PASS_PTR(FIFO_TYPE)) \
     { \
         return !(fifo->base.fill < LEN ); \
+    } \
+    \
+    void FIFO_FUNC_FLUSH(NAME) (FIFO_PASS_PTR(FIFO_TYPE)) \
+    { \
+        fifo->base.r_index = fifo->base.w_index; \
+        fifo->base.fill = 0U; \
     } 
 
 #endif /* FIFO_H_ */

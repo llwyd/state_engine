@@ -102,19 +102,9 @@ typedef enum
 }
 state_ret_t;
 
-/* Circular buffer for FSM events. */
-typedef struct state_fifo_t state_fifo_t;
-
+#ifndef MAX_NESTED_STATES
 #define MAX_NESTED_STATES ( 3U )
-#define FIFO_BUFFER_SIZE ( 32U )
-
-struct state_fifo_t
-{
-    uint32_t read_index;
-    uint32_t write_index;
-    uint32_t fill;
-    event_t event[ FIFO_BUFFER_SIZE ];
-};
+#endif /* MAX_NESTED_STATES */
 
 /* Forward declaration so that function pointer with state can return itself */
 typedef struct state_t state_t;
@@ -126,6 +116,8 @@ struct state_t
 {
     state_func_t state;
 };
+
+
 
 #ifdef UNIT_TESTS
 
@@ -149,23 +141,15 @@ struct state_t
 
     extern state_history_t * STATE_GetHistory ( void );
     extern void STATE_UnitTestInit(void);
-    extern void STATE_InitEventBuffer( state_fifo_t * const fsm_event );
     extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
 #else
 
 #endif
-extern void STATEMACHINE_Init( state_t * state, state_fifo_t * fsm_event, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
+extern void STATEMACHINE_Init( state_t * state, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */
 extern void STATEMACHINE_Dispatch( state_t * state, event_t s );
 extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s );
-
-/* Event queuing */
-extern void STATEMACHINE_FlushEvents( state_fifo_t * const fsm_event );
-extern void STATEMACHINE_AddEvent( state_fifo_t * const fsm_event, event_t s);
-extern event_t STATEMACHINE_GetLatestEvent( state_fifo_t * const fsm_event );
-extern bool STATEMACHINE_EventsAvailable( const state_fifo_t * const fsm_event );
-
 
 #endif /* STATE_H_ */
 

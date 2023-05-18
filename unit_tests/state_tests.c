@@ -1,6 +1,7 @@
 #include "state_tests.h"
 #include "state.h"
 #include "unity.h"
+#include "fifo.h"
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
@@ -21,6 +22,8 @@
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
+
+CREATE_FIFO(_StateEvent, event_fifo_t, event_t, 32U );
 
 static state_ret_t State_A( state_t * this, event_t s)
 {
@@ -221,72 +224,73 @@ static void test_STATE_Preprocessor( void )
 
 static void test_FIFO_Init( void )
 {
-    state_fifo_t events;
-    STATE_InitEventBuffer( &events );
+    event_fifo_t events;
+    FIFO_Init_StateEvent( &events );
 
-    TEST_ASSERT_EQUAL( events.read_index, 0U );
-    TEST_ASSERT_EQUAL( events.write_index, 0U );
-    TEST_ASSERT_EQUAL( events.fill, 0U );
+    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.fill, 0U );
 }
 
 static void test_FIFO_AddRemoveEvent( void )
 {
-    state_fifo_t events;
-    STATE_InitEventBuffer( &events );
+    event_fifo_t events;
+    FIFO_Init_StateEvent( &events );
 
-    TEST_ASSERT_EQUAL( events.read_index, 0U );
-    TEST_ASSERT_EQUAL( events.write_index, 0U );
-    TEST_ASSERT_EQUAL( events.fill, 0U );
-    TEST_ASSERT_FALSE( STATEMACHINE_EventsAvailable( &events ) );
+    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.fill, 0U );
+    TEST_ASSERT_FALSE( FIFO_NE_StateEvent( &events ) );
 
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.read_index, 0U );
-    TEST_ASSERT_EQUAL( events.write_index, 1U );
-    TEST_ASSERT_EQUAL( events.fill, 1U );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 1U );
+    TEST_ASSERT_EQUAL( events.base.fill, 1U );
 
-    TEST_ASSERT_TRUE( STATEMACHINE_EventsAvailable( &events ) );
+    TEST_ASSERT_TRUE( FIFO_NE_StateEvent( &events ) );
 
-    event_t event = STATEMACHINE_GetLatestEvent( &events );
+    event_t event = FIFO_DEQ_StateEvent( &events );
     TEST_ASSERT_EQUAL( event, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.read_index, 1U );
-    TEST_ASSERT_EQUAL( events.write_index, 1U );
-    TEST_ASSERT_EQUAL( events.fill, 0U );
+    TEST_ASSERT_EQUAL( events.base.r_index, 1U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 1U );
+    TEST_ASSERT_EQUAL( events.base.fill, 0U );
 }
 
 static void test_FIFO_WrapAround( void )
 {
-    state_fifo_t events;
-    events.write_index = ( FIFO_BUFFER_SIZE - 1U );
-    events.read_index = ( FIFO_BUFFER_SIZE - 1U );
-    events.fill = 0;
+    event_fifo_t events;
+    FIFO_Init_StateEvent( &events );
+    
+    events.base.w_index = ( events.base.max - 1U );
+    events.base.r_index = ( events.base.max - 1U );
+    events.base.fill = 0;
 
-
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.read_index, (FIFO_BUFFER_SIZE - 1U ));
-    TEST_ASSERT_EQUAL( events.write_index, 0U );
-    TEST_ASSERT_EQUAL( events.fill, 1U );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( events.base.r_index, (events.base.max - 1U ));
+    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.fill, 1U );
 }
 
 static void test_FIFO_Flush( void )
 {
-    state_fifo_t events;
-    STATE_InitEventBuffer( &events );
+    event_fifo_t events;
+    FIFO_Init_StateEvent( &events );
     
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
-    STATEMACHINE_AddEvent( &events, EVENT( Tick ) );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
 
-    TEST_ASSERT_EQUAL( events.read_index, 0U );
-    TEST_ASSERT_EQUAL( events.write_index, 4U );
-    TEST_ASSERT_EQUAL( events.fill, 4U );
-    TEST_ASSERT_TRUE( STATEMACHINE_EventsAvailable( &events ) );
+    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 4U );
+    TEST_ASSERT_EQUAL( events.base.fill, 4U );
+    TEST_ASSERT_TRUE( FIFO_NE_StateEvent( &events ) );
 
-    STATEMACHINE_FlushEvents( &events );
-    TEST_ASSERT_EQUAL( events.read_index, 4U );
-    TEST_ASSERT_EQUAL( events.write_index, 4U );
-    TEST_ASSERT_EQUAL( events.fill, 0U );
-    TEST_ASSERT_FALSE( STATEMACHINE_EventsAvailable( &events ) );
+    FIFO_FLUSH_StateEvent( &events );
+    TEST_ASSERT_EQUAL( events.base.r_index, 4U );
+    TEST_ASSERT_EQUAL( events.base.w_index, 4U );
+    TEST_ASSERT_EQUAL( events.base.fill, 0U );
+    TEST_ASSERT_FALSE( FIFO_NE_StateEvent( &events ) );
 }
 
 static void test_STATE_Init( void )
@@ -294,7 +298,7 @@ static void test_STATE_Init( void )
     STATE_UnitTestInit();
 
     state_t state;
-    state_fifo_t events;
+    event_fifo_t events;
 
     state_history_t * history = STATE_GetHistory();
 
@@ -303,7 +307,8 @@ static void test_STATE_Init( void )
      * StateA0 ->Enter
      */
 
-    STATEMACHINE_Init( &state, &events , STATE( A0 ) );
+    FIFO_Init_StateEvent( &events );
+    STATEMACHINE_Init( &state, STATE( A0 ) );
     
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
     TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );

@@ -25,6 +25,7 @@ add_executable( tests.out
 
 target_compile_options( tests.out
                         PUBLIC
+                        -Wfatal-errors
                         -Wall
                         -Werror
                         #-Wpedantic
