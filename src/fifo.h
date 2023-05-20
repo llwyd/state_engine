@@ -1,6 +1,7 @@
 #ifndef FIFO_H_
 #define FIFO_H_
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
