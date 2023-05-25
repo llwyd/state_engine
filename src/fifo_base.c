@@ -6,7 +6,14 @@ static void virtual_Flush( fifo_base_t * fifo );
 
 extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
 {
+    static const fifo_vfunc_t vfunc =
+    {
+        .enq = virtual_EnQ,
+        .deq = virtual_DeQ,
+        .flush = virtual_Flush,
+    };
 
+    fifo->vfunc = &vfunc;
     fifo->fill = 0U;
     fifo->read_index = 0U;
     fifo->write_index = 0U;
