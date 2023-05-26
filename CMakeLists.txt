@@ -15,11 +15,11 @@ add_executable( tests.out
                 src/fifo_base.c
                 src/state.c
                 src/state.h
-                unit_tests/fifo_tests.c
-                unit_tests/fifo_tests.h
-                unit_tests/state_tests.c
-                unit_tests/state_tests.h
-                unit_tests/tests.c
+                tests/fifo_tests.c
+                tests/fifo_tests.h
+                tests/state_tests.c
+                tests/state_tests.h
+                tests/tests.c
                 unity/unity.c
                 unity/unity.h
                 unity/unity_internals.h ) 
