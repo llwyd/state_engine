@@ -19,21 +19,27 @@ fifo_base_t;
 
 struct fifo_vfunc_t
 {
-    void (*enq)(fifo_base_t * const fifo);
-    void (*deq)(fifo_base_t * const fifo);
-    void (*flush)(fifo_base_t * const fifo);
+    void (*enq)(fifo_base_t * const base);
+    void (*deq)(fifo_base_t * const base);
+    void (*flush)(fifo_base_t * const base);
 };
 
 inline static void FIFO_EnQ( fifo_base_t * const fifo )
 {
     assert( fifo != NULL );
     assert( fifo->vfunc != NULL );
+    assert( fifo->fill < fifo->max );
+    
+    (fifo->vfunc->enq)(fifo);
 }
 
 inline static void FIFO_DeQ( fifo_base_t * const fifo )
 {
     assert( fifo != NULL );
     assert( fifo->vfunc != NULL );
+    assert( fifo->fill > 0U );
+
+    (fifo->vfunc->deq)(fifo);
 }
 
 inline static void FIFO_Flush( fifo_base_t * const fifo )

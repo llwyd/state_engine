@@ -2,6 +2,7 @@
 #include "fifo_base.h"
 //#include "fifo.h"
 #include "unity.h"
+#include <string.h>
 
 //CREATE_FIFO(UInt32,test_fifo_t, uint32_t, 32 );
 
@@ -13,6 +14,46 @@ typedef struct
     uint32_t data;
 } test_fifo_t;
 
+void Enqueue( fifo_base_t * const fifo );
+void Dequeue( fifo_base_t * const fifo );
+void Flush( fifo_base_t * const fifo );
+
+void Init( test_fifo_t * fifo )
+{
+    static const fifo_vfunc_t vfunc =
+    {
+        .enq = Enqueue,
+        .deq = Dequeue,
+        .flush = Flush,
+    };
+    FIFO_Init( (fifo_base_t *)fifo, FIFO_LEN );
+    
+    fifo->base.vfunc = &vfunc;
+    fifo->data = 0x0;
+    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->data));
+}
+
+void Enqueue( fifo_base_t * const base )
+{
+    assert(base != NULL );
+    test_fifo_t * fifo = (test_fifo_t *)base;
+
+    fifo->queue[ fifo->base.write_index ] = fifo->data;
+    fifo->base.write_index++;
+    fifo->base.fill++;
+    fifo->base.write_index = ( fifo->base.write_index & ( fifo->base.max - 1U ) );
+}
+
+void Dequeue( fifo_base_t * const base )
+{
+    assert(base != NULL );
+}
+
+void Flush( fifo_base_t * const base )
+{
+    assert(base != NULL );
+}
+
 void test_FIFO_Init(void)
 {
     test_fifo_t fifo;
@@ -23,20 +64,23 @@ void test_FIFO_Init(void)
     TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
     TEST_ASSERT_EQUAL( 0U, fifo.base.write_index );
 }
-/*
+
 void test_FIFO_Enqueue(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
-    FIFO_ENQUInt32(&fifo, 0x12345678);
+    Init(&fifo);
+    
+    fifo.data = 0x12345678;
+    FIFO_EnQ(&fifo.base);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
-    TEST_ASSERT_EQUAL( 0U, fifo.base.r_index );
-    TEST_ASSERT_EQUAL( 1U, fifo.base.w_index );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
     TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
 }
 
+/*
 void test_FIFO_Dequeue(void)
 {
     test_fifo_t fifo;
@@ -44,16 +88,16 @@ void test_FIFO_Dequeue(void)
     FIFO_ENQUInt32(&fifo, 0x12345678);
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
-    TEST_ASSERT_EQUAL( 0U, fifo.base.r_index );
-    TEST_ASSERT_EQUAL( 1U, fifo.base.w_index );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
     TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
     
     uint32_t value = FIFO_DEQUInt32(&fifo);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 0U, fifo.base.fill );
-    TEST_ASSERT_EQUAL( 1U, fifo.base.r_index );
-    TEST_ASSERT_EQUAL( 1U, fifo.base.w_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
     TEST_ASSERT_EQUAL( 0x12345678, value );
 }
 
@@ -67,8 +111,8 @@ void test_FIFO_EnqueueMany(void)
         FIFO_ENQUInt32(&fifo, 0x12345678);
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( idx + 1U, fifo.base.fill );
-        TEST_ASSERT_EQUAL( 0U, fifo.base.r_index );
-        TEST_ASSERT_EQUAL( (idx + 1U)%32, fifo.base.w_index );
+        TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+        TEST_ASSERT_EQUAL( (idx + 1U)%32, fifo.base.write_index );
         TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[idx]);
     }
 }
@@ -92,8 +136,8 @@ void test_FIFO_DequeueMany(void)
         currentFill--;
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( currentFill, fifo.base.fill );
-        TEST_ASSERT_EQUAL( (idx + 1U)%32, fifo.base.r_index );
-        TEST_ASSERT_EQUAL( 0U, fifo.base.w_index );
+        TEST_ASSERT_EQUAL( (idx + 1U)%32, fifo.base.read_index );
+        TEST_ASSERT_EQUAL( 0U, fifo.base.write_index );
         TEST_ASSERT_EQUAL( 0x12345678, value);
 
     }
@@ -126,8 +170,8 @@ void test_FIFO_IsFull(void)
 extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
-    /*
     RUN_TEST(test_FIFO_Enqueue);
+    /*
     RUN_TEST(test_FIFO_Dequeue);
     RUN_TEST(test_FIFO_EnqueueMany);
     RUN_TEST(test_FIFO_DequeueMany);
