@@ -6,6 +6,9 @@ static void virtual_Flush( fifo_base_t * fifo );
 
 extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
 {
+    assert(size > 0U);
+    assert((size & (size - 1U )) == 0U);
+    
     static const fifo_vfunc_t vfunc =
     {
         .enq = virtual_EnQ,
