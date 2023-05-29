@@ -9,6 +9,26 @@
 #define ENQUEUE(f, val) ((f).data = (val), FIFO_EnQ((fifo_base_t *)&(f)))
 #define DEQUEUE(f) ((FIFO_DeQ((fifo_base_t *)&(f))), (f).data)
 
+#define __ENQUEUE(TYPE, BASE) \
+    { \
+        TYPE * fifo = ((TYPE *)(BASE)); \
+        \
+        fifo->queue[ fifo->base.write_index ] = fifo->data; \
+        fifo->base.write_index++; \
+        fifo->base.fill++; \
+        fifo->base.write_index = ( fifo->base.write_index & ( fifo->base.max - 1U ) ); \
+    }
+
+#define __DEQUEUE(TYPE, BASE) \
+    { \
+        TYPE * fifo = ((TYPE *)(BASE)); \
+        \
+        fifo->data = fifo->queue[ fifo->base.read_index ]; \
+        fifo->base.read_index++; \
+        fifo->base.fill--; \
+        fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) ); \
+    }
+
 typedef struct fifo_vfunc_t fifo_vfunc_t;
 typedef struct 
 {

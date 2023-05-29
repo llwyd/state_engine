@@ -4,9 +4,8 @@
 #include "unity.h"
 #include <string.h>
 
-//CREATE_FIFO(UInt32,test_fifo_t, uint32_t, 32 );
-
 #define FIFO_LEN (32U)
+
 typedef struct
 {
     fifo_base_t base;
@@ -14,9 +13,9 @@ typedef struct
     uint32_t data;
 } test_fifo_t;
 
-void Enqueue( fifo_base_t * const fifo );
-void Dequeue( fifo_base_t * const fifo );
-void Flush( fifo_base_t * const fifo );
+static void Enqueue( fifo_base_t * const fifo );
+static void Dequeue( fifo_base_t * const fifo );
+static void Flush( fifo_base_t * const fifo );
 
 void Init( test_fifo_t * fifo )
 {
@@ -36,23 +35,13 @@ void Init( test_fifo_t * fifo )
 void Enqueue( fifo_base_t * const base )
 {
     assert(base != NULL );
-    test_fifo_t * fifo = (test_fifo_t *)base;
-
-    fifo->queue[ fifo->base.write_index ] = fifo->data;
-    fifo->base.write_index++;
-    fifo->base.fill++;
-    fifo->base.write_index = ( fifo->base.write_index & ( fifo->base.max - 1U ) );
+    __ENQUEUE( test_fifo_t, base );
 }
 
 void Dequeue( fifo_base_t * const base )
 {
     assert(base != NULL );
-    test_fifo_t * fifo = (test_fifo_t *)base;
-
-    fifo->data = fifo->queue[ fifo->base.read_index ];
-    fifo->base.read_index++;
-    fifo->base.fill--;
-    fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) );
+    __DEQUEUE( test_fifo_t, base );
 }
 
 void Flush( fifo_base_t * const base )
