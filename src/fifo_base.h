@@ -6,6 +6,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define ENQUEUE(f, val) ((f).data = (val), FIFO_EnQ((fifo_base_t *)&(f)))
+#define DEQUEUE(f) ((FIFO_DeQ((fifo_base_t *)&(f))), (f).data)
+
 typedef struct fifo_vfunc_t fifo_vfunc_t;
 typedef struct 
 {

@@ -47,6 +47,12 @@ void Enqueue( fifo_base_t * const base )
 void Dequeue( fifo_base_t * const base )
 {
     assert(base != NULL );
+    test_fifo_t * fifo = (test_fifo_t *)base;
+
+    fifo->data = fifo->queue[ fifo->base.read_index ];
+    fifo->base.read_index++;
+    fifo->base.fill--;
+    fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) );
 }
 
 void Flush( fifo_base_t * const base )
@@ -69,9 +75,8 @@ void test_FIFO_Enqueue(void)
 {
     test_fifo_t fifo;
     Init(&fifo);
-    
-    fifo.data = 0x12345678;
-    FIFO_EnQ(&fifo.base);
+
+    ENQUEUE(fifo, 0x12345678);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
@@ -80,19 +85,20 @@ void test_FIFO_Enqueue(void)
     TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
 }
 
-/*
 void test_FIFO_Dequeue(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
-    FIFO_ENQUInt32(&fifo, 0x12345678);
+    Init(&fifo);
+
+    ENQUEUE(fifo, 0x12345678);
+    
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
     TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
     TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
     TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
     
-    uint32_t value = FIFO_DEQUInt32(&fifo);
+    uint32_t value = DEQUEUE(fifo);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 0U, fifo.base.fill );
@@ -101,6 +107,7 @@ void test_FIFO_Dequeue(void)
     TEST_ASSERT_EQUAL( 0x12345678, value );
 }
 
+/*
 void test_FIFO_EnqueueMany(void)
 {
     test_fifo_t fifo;
@@ -171,8 +178,8 @@ extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
     RUN_TEST(test_FIFO_Enqueue);
-    /*
     RUN_TEST(test_FIFO_Dequeue);
+    /*
     RUN_TEST(test_FIFO_EnqueueMany);
     RUN_TEST(test_FIFO_DequeueMany);
     RUN_TEST(test_FIFO_NotEmpty);
