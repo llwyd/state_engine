@@ -35,13 +35,13 @@ void Init( test_fifo_t * fifo )
 void Enqueue( fifo_base_t * const base )
 {
     assert(base != NULL );
-    __ENQUEUE( test_fifo_t, base );
+    ENQUEUE_BOILERPLATE( test_fifo_t, base );
 }
 
 void Dequeue( fifo_base_t * const base )
 {
     assert(base != NULL );
-    __DEQUEUE( test_fifo_t, base );
+    DEQUEUE_BOILERPLATE( test_fifo_t, base );
 }
 
 void Flush( fifo_base_t * const base )
@@ -65,7 +65,7 @@ void test_FIFO_Enqueue(void)
     test_fifo_t fifo;
     Init(&fifo);
 
-    ENQUEUE(fifo, 0x12345678);
+    FIFO_Enqueue(fifo, 0x12345678);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
@@ -79,7 +79,7 @@ void test_FIFO_Dequeue(void)
     test_fifo_t fifo;
     Init(&fifo);
 
-    ENQUEUE(fifo, 0x12345678);
+    FIFO_Enqueue(fifo, 0x12345678);
     
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
@@ -87,7 +87,7 @@ void test_FIFO_Dequeue(void)
     TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
     TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
     
-    uint32_t value = DEQUEUE(fifo);
+    uint32_t value = FIFO_Dequeue(fifo);
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.max );
     TEST_ASSERT_EQUAL( 0U, fifo.base.fill );
@@ -104,7 +104,7 @@ void test_FIFO_EnqueueMany(void)
 
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        ENQUEUE(fifo, 0x12345678);
+        FIFO_Enqueue(fifo, 0x12345678);
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( idx + 1U, fifo.base.fill );
         TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
@@ -120,7 +120,7 @@ void test_FIFO_DequeueMany(void)
 
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        ENQUEUE(fifo, 0x12345678);
+        FIFO_Enqueue(fifo, 0x12345678);
     }
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.fill );
@@ -128,7 +128,7 @@ void test_FIFO_DequeueMany(void)
     uint32_t currentFill = fifo.base.fill;
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        uint32_t value = DEQUEUE(fifo);
+        uint32_t value = FIFO_Dequeue(fifo);
         currentFill--;
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( currentFill, fifo.base.fill );
@@ -145,7 +145,7 @@ void test_FIFO_IsEmpty(void)
     Init(&fifo);
 
     TEST_ASSERT_TRUE( FIFO_IsEmpty(&fifo.base));
-    ENQUEUE(fifo,0xFFFFFFFF);
+    FIFO_Enqueue(fifo,0xFFFFFFFF);
     TEST_ASSERT_FALSE( FIFO_IsEmpty(&fifo.base));
 }
 
@@ -157,7 +157,7 @@ void test_FIFO_IsFull(void)
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
         TEST_ASSERT_FALSE(FIFO_IsFull(&fifo.base));
-        ENQUEUE(fifo, 0x12345678);
+        FIFO_Enqueue(fifo, 0x12345678);
     }
     TEST_ASSERT_TRUE(FIFO_IsFull(&fifo.base));
 }

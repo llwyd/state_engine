@@ -6,10 +6,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ENQUEUE(f, val) ((f).data = (val), FIFO_EnQ((fifo_base_t *)&(f)))
-#define DEQUEUE(f) ((FIFO_DeQ((fifo_base_t *)&(f))), (f).data)
+#define FIFO_Enqueue(f, val) ((f).data = (val), FIFO_EnQ((fifo_base_t *)&(f)))
+#define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)&(f))), (f).data)
 
-#define __ENQUEUE(TYPE, BASE) \
+#define ENQUEUE_BOILERPLATE(TYPE, BASE) \
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
@@ -19,7 +19,7 @@
         fifo->base.write_index = ( fifo->base.write_index & ( fifo->base.max - 1U ) ); \
     }
 
-#define __DEQUEUE(TYPE, BASE) \
+#define DEQUEUE_BOILERPLATE(TYPE, BASE) \
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
@@ -70,6 +70,7 @@ inline static void FIFO_Flush( fifo_base_t * const fifo )
     assert( fifo != NULL );
     assert( fifo->vfunc != NULL );
 
+    (fifo->vfunc->flush)(fifo);
 }
 
 extern void FIFO_Init( fifo_base_t * const fifo, uint32_t size );
