@@ -96,15 +96,15 @@ void test_FIFO_Dequeue(void)
     TEST_ASSERT_EQUAL( 0x12345678, value );
 }
 
-/*
+
 void test_FIFO_EnqueueMany(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
+    Init(&fifo);
 
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        FIFO_ENQUInt32(&fifo, 0x12345678);
+        ENQUEUE(fifo, 0x12345678);
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( idx + 1U, fifo.base.fill );
         TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
@@ -116,11 +116,11 @@ void test_FIFO_EnqueueMany(void)
 void test_FIFO_DequeueMany(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
+    Init(&fifo);
 
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        FIFO_ENQUInt32(&fifo, 0x12345678);
+        ENQUEUE(fifo, 0x12345678);
     }
 
     TEST_ASSERT_EQUAL( 32U, fifo.base.fill );
@@ -128,7 +128,7 @@ void test_FIFO_DequeueMany(void)
     uint32_t currentFill = fifo.base.fill;
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        uint32_t value = FIFO_DEQUInt32(&fifo);
+        uint32_t value = DEQUEUE(fifo);
         currentFill--;
         TEST_ASSERT_EQUAL( 32U, fifo.base.max );
         TEST_ASSERT_EQUAL( currentFill, fifo.base.fill );
@@ -139,40 +139,37 @@ void test_FIFO_DequeueMany(void)
     }
 }
 
-void test_FIFO_NotEmpty(void)
+void test_FIFO_IsEmpty(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
+    Init(&fifo);
 
-    TEST_ASSERT_FALSE( FIFO_NEUInt32(&fifo));
-    FIFO_ENQUInt32(&fifo,0xFFFFFFFF);
-    TEST_ASSERT_TRUE( FIFO_NEUInt32(&fifo));
+    TEST_ASSERT_TRUE( FIFO_IsEmpty(&fifo.base));
+    ENQUEUE(fifo,0xFFFFFFFF);
+    TEST_ASSERT_FALSE( FIFO_IsEmpty(&fifo.base));
 }
 
 void test_FIFO_IsFull(void)
 {
     test_fifo_t fifo;
-    FIFO_InitUInt32(&fifo);
+    Init(&fifo);
 
     for( uint32_t idx = 0; idx < 32; idx++ )
     {
-        TEST_ASSERT_FALSE(FIFO_ISFULLUInt32(&fifo));
-        FIFO_ENQUInt32(&fifo, 0x12345678);
+        TEST_ASSERT_FALSE(FIFO_IsFull(&fifo.base));
+        ENQUEUE(fifo, 0x12345678);
     }
-    TEST_ASSERT_TRUE(FIFO_ISFULLUInt32(&fifo));
+    TEST_ASSERT_TRUE(FIFO_IsFull(&fifo.base));
 }
-*/
 
 extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
     RUN_TEST(test_FIFO_Enqueue);
     RUN_TEST(test_FIFO_Dequeue);
-    /*
     RUN_TEST(test_FIFO_EnqueueMany);
     RUN_TEST(test_FIFO_DequeueMany);
-    RUN_TEST(test_FIFO_NotEmpty);
+    RUN_TEST(test_FIFO_IsEmpty);
     RUN_TEST(test_FIFO_IsFull);
-    */
 }
 
