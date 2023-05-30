@@ -6,8 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define FIFO_Enqueue(f, val) ((f).data = (val), FIFO_EnQ((fifo_base_t *)&(f)))
-#define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)&(f))), (f).data)
+#define FIFO_Enqueue(f, val) ((f)->data = (val), FIFO_EnQ((fifo_base_t *)(f)))
+#define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)(f))), (f)->data)
 
 #define ENQUEUE_BOILERPLATE(TYPE, BASE) \
     { \
