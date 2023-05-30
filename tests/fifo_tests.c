@@ -47,6 +47,7 @@ void Dequeue( fifo_base_t * const base )
 void Flush( fifo_base_t * const base )
 {
     assert(base != NULL );
+    FLUSH_BOILERPLATE( test_fifo_t, base );
 }
 
 void test_FIFO_Init(void)
@@ -162,6 +163,29 @@ void test_FIFO_IsFull(void)
     TEST_ASSERT_TRUE(FIFO_IsFull(&fifo.base));
 }
 
+
+void test_FIFO_Flush(void)
+{
+    test_fifo_t fifo;
+    Init(&fifo);
+
+    for( uint32_t idx = 0; idx < 32; idx++ )
+    {
+        TEST_ASSERT_FALSE(FIFO_IsFull(&fifo.base));
+        FIFO_Enqueue(&fifo, 0x12345678);
+    }
+    TEST_ASSERT_TRUE(FIFO_IsFull(&fifo.base));
+
+    FIFO_Flush(&fifo.base);
+    TEST_ASSERT_FALSE(FIFO_IsFull(&fifo.base));
+    TEST_ASSERT_TRUE(FIFO_IsEmpty(&fifo.base));
+    
+    TEST_ASSERT_EQUAL( 32U, fifo.base.max );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.fill );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.write_index );
+}
+
 extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
@@ -171,5 +195,6 @@ extern void FIFOTestSuite(void)
     RUN_TEST(test_FIFO_DequeueMany);
     RUN_TEST(test_FIFO_IsEmpty);
     RUN_TEST(test_FIFO_IsFull);
+    RUN_TEST(test_FIFO_Flush);
 }
 

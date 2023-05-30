@@ -29,6 +29,15 @@
         fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) ); \
     }
 
+#define FLUSH_BOILERPLATE(TYPE, BASE) \
+    { \
+        TYPE * fifo = ((TYPE *)(BASE)); \
+        \
+        fifo->base.read_index = 0U; \
+        fifo->base.write_index = 0U; \
+        fifo->base.fill = 0U; \
+    }
+
 typedef struct fifo_vfunc_t fifo_vfunc_t;
 typedef struct 
 {
