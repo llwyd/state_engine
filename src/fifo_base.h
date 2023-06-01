@@ -33,8 +33,7 @@
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
-        fifo->base.read_index = 0U; \
-        fifo->base.write_index = 0U; \
+        fifo->base.read_index = fifo->base.write_index; \
         fifo->base.fill = 0U; \
     }
 

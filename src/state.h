@@ -106,10 +106,8 @@ struct state_t
     state_func_t state;
 };
 
-
-
 #ifdef UNIT_TESTS
-
+    #include "fifo_base.h"
     #define UNIT_TEST_HISTORY_SIZE ( 64U )
 
     typedef struct
@@ -119,6 +117,13 @@ struct state_t
     }
     state_history_data_t;
 
+    typedef struct
+    {
+        fifo_base_t base;
+        state_history_data_t queue[UNIT_TEST_HISTORY_SIZE];
+        state_history_data_t data;
+    }
+    history_fifo_t;
     typedef struct
     {
         state_history_data_t data[ UNIT_TEST_HISTORY_SIZE ];

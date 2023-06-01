@@ -1,6 +1,7 @@
 #include "state_tests.h"
 #include "state.h"
 #include "unity.h"
+#include <string.h>
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
@@ -21,6 +22,52 @@
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
+
+#define FIFO_LEN (32U)
+
+typedef struct
+{
+    fifo_base_t base;
+    event_t queue[FIFO_LEN];
+    event_t data;
+} event_fifo_t;
+
+static void Enqueue( fifo_base_t * const fifo );
+static void Dequeue( fifo_base_t * const fifo );
+static void Flush( fifo_base_t * const fifo );
+
+static void Init( event_fifo_t * fifo )
+{
+    static const fifo_vfunc_t vfunc =
+    {
+        .enq = Enqueue,
+        .deq = Dequeue,
+        .flush = Flush,
+    };
+    FIFO_Init( (fifo_base_t *)fifo, FIFO_LEN );
+    
+    fifo->base.vfunc = &vfunc;
+    fifo->data = 0x0;
+    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->data));
+}
+
+void Enqueue( fifo_base_t * const base )
+{
+    assert(base != NULL );
+    ENQUEUE_BOILERPLATE( event_fifo_t, base );
+}
+
+void Dequeue( fifo_base_t * const base )
+{
+    assert(base != NULL );
+    DEQUEUE_BOILERPLATE( event_fifo_t, base );
+}
+
+void Flush( fifo_base_t * const base )
+{
+    assert(base != NULL );
+    FLUSH_BOILERPLATE( event_fifo_t, base );
+}
 
 static state_ret_t State_A( state_t * this, event_t s)
 {
@@ -219,75 +266,75 @@ static void test_STATE_Preprocessor( void )
     TEST_ASSERT_EQUAL( EVENT(Tick), EVENT(DefaultCount));
 }
 
-static void test_FIFO_Init( void )
+static void test_STATE_FIFOInit( void )
 {
     event_fifo_t events;
-    FIFO_Init_StateEvent( &events );
+    Init( &events );
 
-    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.read_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 0U );
     TEST_ASSERT_EQUAL( events.base.fill, 0U );
 }
 
-static void test_FIFO_AddRemoveEvent( void )
+static void test_STATE_FIFOAddRemoveEvent( void )
 {
     event_fifo_t events;
-    FIFO_Init_StateEvent( &events );
+    Init( &events );
 
-    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.read_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 0U );
     TEST_ASSERT_EQUAL( events.base.fill, 0U );
-    TEST_ASSERT_FALSE( FIFO_NE_StateEvent( &events ) );
+    TEST_ASSERT_TRUE( FIFO_IsEmpty( &events.base ) );
 
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 1U );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( events.base.read_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 1U );
     TEST_ASSERT_EQUAL( events.base.fill, 1U );
 
-    TEST_ASSERT_TRUE( FIFO_NE_StateEvent( &events ) );
+    TEST_ASSERT_FALSE( FIFO_IsEmpty( &events.base ) );
 
-    event_t event = FIFO_DEQ_StateEvent( &events );
+    event_t event = FIFO_Dequeue( &events );
     TEST_ASSERT_EQUAL( event, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.base.r_index, 1U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 1U );
+    TEST_ASSERT_EQUAL( events.base.read_index, 1U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 1U );
     TEST_ASSERT_EQUAL( events.base.fill, 0U );
 }
 
-static void test_FIFO_WrapAround( void )
+static void test_STATE_FIFOWrapAround( void )
 {
     event_fifo_t events;
-    FIFO_Init_StateEvent( &events );
+    Init( &events );
     
-    events.base.w_index = ( events.base.max - 1U );
-    events.base.r_index = ( events.base.max - 1U );
+    events.base.write_index = ( events.base.max - 1U );
+    events.base.read_index = ( events.base.max - 1U );
     events.base.fill = 0;
 
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( events.base.r_index, (events.base.max - 1U ));
-    TEST_ASSERT_EQUAL( events.base.w_index, 0U );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( events.base.read_index, (events.base.max - 1U ));
+    TEST_ASSERT_EQUAL( events.base.write_index, 0U );
     TEST_ASSERT_EQUAL( events.base.fill, 1U );
 }
 
-static void test_FIFO_Flush( void )
+static void test_STATE_FIFOFlush( void )
 {
     event_fifo_t events;
-    FIFO_Init_StateEvent( &events );
+    Init( &events );
     
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
-    FIFO_ENQ_StateEvent( &events, EVENT( Tick ) );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
+    FIFO_Enqueue( &events, EVENT( Tick ) );
 
-    TEST_ASSERT_EQUAL( events.base.r_index, 0U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 4U );
+    TEST_ASSERT_EQUAL( events.base.read_index, 0U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 4U );
     TEST_ASSERT_EQUAL( events.base.fill, 4U );
-    TEST_ASSERT_TRUE( FIFO_NE_StateEvent( &events ) );
+    TEST_ASSERT_FALSE( FIFO_IsEmpty( &events.base ) );
 
-    FIFO_FLUSH_StateEvent( &events );
-    TEST_ASSERT_EQUAL( events.base.r_index, 4U );
-    TEST_ASSERT_EQUAL( events.base.w_index, 4U );
+    FIFO_Flush( &events.base );
+    TEST_ASSERT_EQUAL( events.base.read_index, 4U );
+    TEST_ASSERT_EQUAL( events.base.write_index, 4U );
     TEST_ASSERT_EQUAL( events.base.fill, 0U );
-    TEST_ASSERT_FALSE( FIFO_NE_StateEvent( &events ) );
+    TEST_ASSERT_TRUE( FIFO_IsEmpty( &events.base ) );
 }
 
 static void test_STATE_Init( void )
@@ -304,7 +351,7 @@ static void test_STATE_Init( void )
      * StateA0 ->Enter
      */
 
-    FIFO_Init_StateEvent( &events );
+    Init( &events );
     STATEMACHINE_Init( &state, STATE( A0 ) );
     
     TEST_ASSERT_EQUAL( history->fill, 2U ); 
@@ -584,10 +631,10 @@ extern void STATETestSuite(void)
 {
     RUN_TEST( test_STATE_Preprocessor );
 
-    RUN_TEST( test_FIFO_Init );
-    RUN_TEST( test_FIFO_AddRemoveEvent );
-    RUN_TEST( test_FIFO_WrapAround );
-    RUN_TEST( test_FIFO_Flush );
+    RUN_TEST( test_STATE_FIFOInit );
+    RUN_TEST( test_STATE_FIFOAddRemoveEvent );
+    RUN_TEST( test_STATE_FIFOWrapAround );
+    RUN_TEST( test_STATE_FIFOFlush );
 
     RUN_TEST( test_STATE_Init );
     RUN_TEST( test_STATE_SingleEvent );
