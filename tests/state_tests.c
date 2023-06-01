@@ -1,7 +1,6 @@
 #include "state_tests.h"
 #include "state.h"
 #include "unity.h"
-#include "fifo.h"
 
 #define SIGNALS(SIG) \
   SIG( TransitionToA ) \
@@ -22,8 +21,6 @@
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
-
-CREATE_FIFO(_StateEvent, event_fifo_t, event_t, 32U );
 
 static state_ret_t State_A( state_t * this, event_t s)
 {
