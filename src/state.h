@@ -73,17 +73,6 @@
 //cppcheck-suppress misra-c2012-2.5
 #define NO_PARENT() this->state = NULL; ret = RETURN( Unhandled )
 
-
-/* Platform Specific Stuff */
-#ifdef TARGET_ARM
-
-
-#elif TARGET_ESP32
-
-#else
-
-#endif
-
 /* Signal to send events to a given state */
 typedef uint32_t event_t;
 
