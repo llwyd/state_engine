@@ -8,10 +8,6 @@
 
 #include "state.h"
 
-#ifdef UNIT_TESTS
-    #include <string.h>
-#endif
-
 #ifdef TARGET_ARM
     #define STATE_ENTER_CRITICAL { asm("CPSID IF"); }
     #define STATE_EXIT_CRITICAL  { asm("CPSIE IF"); }
@@ -83,12 +79,8 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s );
 static state_ret_t State_TransitionExiting( state_t * this, event_t s );
 static state_ret_t State_TransitionEntering( state_t * this, event_t s );
 
-/* False positive MISRA violation */
-//cppcheck-suppress misra-c2012-8.2
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
 
-/* False positive MISRA violation */
-//cppcheck-suppress misra-c2012-8.2
 static lca_t DetermineLCA( uint32_t in_depth, 
         state_func_t in_path[ MAX_NESTED_STATES ], 
         uint32_t out_depth,
@@ -96,18 +88,21 @@ static lca_t DetermineLCA( uint32_t in_depth,
 
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
-    static state_history_t state_history;
+    static history_fifo_t state_history;
 
     extern void STATE_UnitTestInit( void );
-    static void UNITTEST_FlushHistory( state_history_t * history );
-    static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event );
-    #define STATE_EXECUTE( current_state, event ) \
+    #define STATE_EXECUTE( current_state, current_event ) \
     { \
-        UNITTEST_UpdateStateHistory( &state_history, (current_state), (event) ); \
-        ret =  (current_state)->state( (current_state), (event) ); \
+        state_history_data_t hist = \
+        { \
+            .state=(current_state)->state, \
+            .event=(current_event), \
+        }; \
+        FIFO_Enqueue(&state_history, hist);\
+        ret =  (current_state)->state( (current_state), (current_event) ); \
     }
 #else
-    #define STATE_EXECUTE( current_state, event ) ret = (current_state)->state( (current_state), (event) )
+    #define STATE_EXECUTE( current_state, current_event ) ret = (current_state)->state( (current_state), (current_event) )
 #endif
 
 extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( state_t * this, event_t s ) )
@@ -424,29 +419,12 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
 #ifdef UNIT_TESTS
 extern void STATE_UnitTestInit( void )
 {
-    UNITTEST_FlushHistory( &state_history );
+    History_Init( &state_history );
 }
 
-static void UNITTEST_FlushHistory( state_history_t * history )
+extern fifo_base_t * STATE_GetHistory( void )
 {
-    history->read_index = 0U;
-    history->write_index = 0U;
-    history->fill = 0U;
-    (void)memset( history->data, 0x00, sizeof(history->data) );
-}
-
-static void UNITTEST_UpdateStateHistory( state_history_t * history, state_t * state, event_t event )
-{
-    history->data[history->write_index].state = state->state; 
-    history->data[history->write_index].event = event; 
-
-    history->fill++;
-    history->write_index++;
-}
-
-extern state_history_t * STATE_GetHistory( void )
-{
-    return &state_history;
+    return &state_history.base;
 }
 
 #endif

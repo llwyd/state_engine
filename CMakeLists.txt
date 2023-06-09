@@ -15,6 +15,8 @@ add_executable( tests.out
                 src/fifo_base.c
                 src/state.c
                 src/state.h
+                src/state_history.c
+                src/state_history.h
                 tests/fifo_tests.c
                 tests/fifo_tests.h
                 tests/state_tests.c

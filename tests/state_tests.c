@@ -344,7 +344,8 @@ static void test_STATE_Init( void )
     state_t state;
     event_fifo_t events;
 
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     /* State machine should
      * StateA -> Enter
@@ -354,31 +355,32 @@ static void test_STATE_Init( void )
     Init( &events );
     STATEMACHINE_Init( &state, STATE( A0 ) );
     
-    TEST_ASSERT_EQUAL( history->fill, 2U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->base.fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
 
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Enter ) );
     
-    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
-    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[2].state, NULL );
+    TEST_ASSERT_EQUAL( history->queue[2].event, NULL );
 }
 
 static void test_STATE_SingleEvent( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A );
 
     STATEMACHINE_Dispatch( &state, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( history->fill, 1U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, NULL );
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 1U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A ) );
 }
@@ -387,19 +389,20 @@ static void test_STATE_SingleUnhandledEvent( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( history->fill, 2U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE ( A ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE ( A ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Tick ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Tick ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
@@ -408,21 +411,22 @@ static void test_STATE_TransitionSharedParent( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToA1 ) );
-    TEST_ASSERT_EQUAL( history->fill, 3U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A1 ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A1 ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA1 ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA1 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
     
@@ -431,16 +435,16 @@ static void test_STATE_TransitionSharedParent( void )
     state.state = STATE( A );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->fill, 3U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( B ) );
 }
@@ -449,25 +453,26 @@ static void test_STATE_TransitionNoSharedParent( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToB0 ) );
-    TEST_ASSERT_EQUAL( history->fill, 5U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[4].state, STATE( B0 ) );
-    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 5U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[4].state, STATE( B0 ) );
+    TEST_ASSERT_EQUAL( history->queue[5].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[4].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[5].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToB0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[5].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( B0 ) );
 }
@@ -476,23 +481,24 @@ static void test_STATE_TransitionUpAndAcross( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->fill, 4U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[5].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( B ) );
 }
@@ -501,23 +507,24 @@ static void test_STATE_TransitionAcrossAndDown( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( B );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToA0 ) );
-    TEST_ASSERT_EQUAL( history->fill, 4U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[5].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[5].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
@@ -526,19 +533,20 @@ static void test_STATE_TransitionOutIntoParent( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToA ) );
-    TEST_ASSERT_EQUAL( history->fill, 2U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 2U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A ) );
 }
@@ -547,21 +555,22 @@ static void test_STATE_TransitionIntoItself( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToA0 ) );
-    TEST_ASSERT_EQUAL( history->fill, 3U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToA0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }
@@ -570,33 +579,34 @@ static void test_STATE_TransitionWhileEntering( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( A0 );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToB1 ) );
-    TEST_ASSERT_EQUAL( history->fill, 9U ); 
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[4].state, STATE( B1 ) );
-    TEST_ASSERT_EQUAL( history->data[5].state, STATE( B1 ) );
-    TEST_ASSERT_EQUAL( history->data[6].state, STATE( B ) );
-    TEST_ASSERT_EQUAL( history->data[7].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[8].state, STATE( A1 ) );
-    TEST_ASSERT_EQUAL( history->data[9].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 9U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[4].state, STATE( B1 ) );
+    TEST_ASSERT_EQUAL( history->queue[5].state, STATE( B1 ) );
+    TEST_ASSERT_EQUAL( history->queue[6].state, STATE( B ) );
+    TEST_ASSERT_EQUAL( history->queue[7].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[8].state, STATE( A1 ) );
+    TEST_ASSERT_EQUAL( history->queue[9].state, NULL );
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB1 ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[4].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[5].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[6].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[7].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[8].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[9].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToB1 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[5].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[6].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[7].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[8].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[9].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
 }
@@ -605,23 +615,24 @@ static void test_STATE_TransitionWhileExiting( void )
 {
     STATE_UnitTestInit();
     state_t state;
-    state_history_t * history = STATE_GetHistory();
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
 
     state.state = STATE( C );
 
     STATEMACHINE_Dispatch( &state, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->data[0].state, STATE( C ) );
-    TEST_ASSERT_EQUAL( history->data[1].state, STATE( C ) );
-    TEST_ASSERT_EQUAL( history->data[2].state, STATE( A ) );
-    TEST_ASSERT_EQUAL( history->data[3].state, STATE( A0 ) );
-    TEST_ASSERT_EQUAL( history->data[4].state, NULL );
-    TEST_ASSERT_EQUAL( history->fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( C ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( C ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[4].state, NULL );
+    TEST_ASSERT_EQUAL( history->base.fill, 4U ); 
     
-    TEST_ASSERT_EQUAL( history->data[0].event, EVENT( TransitionToB ) );
-    TEST_ASSERT_EQUAL( history->data[1].event, EVENT( Exit ) );
-    TEST_ASSERT_EQUAL( history->data[2].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[3].event, EVENT( Enter ) );
-    TEST_ASSERT_EQUAL( history->data[4].event, NULL );
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToB ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, NULL );
 
     TEST_ASSERT_EQUAL( state.state, STATE( A0 ) );
 }

@@ -107,36 +107,9 @@ struct state_t
 };
 
 #ifdef UNIT_TESTS
-    #include "fifo_base.h"
-    #define UNIT_TEST_HISTORY_SIZE ( 64U )
-
-    typedef struct
-    {
-        state_func_t state;
-        event_t event;
-    }
-    state_history_data_t;
-
-    typedef struct
-    {
-        fifo_base_t base;
-        state_history_data_t queue[UNIT_TEST_HISTORY_SIZE];
-        state_history_data_t data;
-    }
-    history_fifo_t;
-    typedef struct
-    {
-        state_history_data_t data[ UNIT_TEST_HISTORY_SIZE ];
-        uint32_t read_index;
-        uint32_t write_index;
-        uint32_t fill;
-    }
-    state_history_t;
-
-    extern state_history_t * STATE_GetHistory ( void );
-    extern void STATE_UnitTestInit(void);
-    extern uint32_t STATE_TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
-#else
+#include "fifo_base.h"
+#include "state_history.h"
+extern fifo_base_t * STATE_GetHistory ( void );
 
 #endif
 extern void STATEMACHINE_Init( state_t * state, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
