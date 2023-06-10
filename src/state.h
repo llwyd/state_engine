@@ -65,13 +65,13 @@
 #define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
 
 //cppcheck-suppress misra-c2012-2.5
-#define PARENT( parent_state ) this->state = STATE(parent_state);  ret = RETURN( Unhandled )
+#define PARENT( X, parent_state ) ((X)->state = STATE(parent_state), RETURN( Unhandled ) )
 //cppcheck-suppress misra-c2012-2.5
-#define TRANSITION( new_state ) this->state = STATE(new_state);  ret = RETURN( Transition )
+#define TRANSITION( X, new_state ) ((X)->state = STATE(new_state), RETURN( Transition ))
 //cppcheck-suppress misra-c2012-2.5
-#define HANDLED() ret = RETURN ( Handled )
+#define HANDLED(X) RETURN ( Handled )
 //cppcheck-suppress misra-c2012-2.5
-#define NO_PARENT() this->state = NULL; ret = RETURN( Unhandled )
+#define NO_PARENT(X) ((X)->state = NULL,RETURN( Unhandled ))
 
 /* Signal to send events to a given state */
 typedef uint32_t event_t;

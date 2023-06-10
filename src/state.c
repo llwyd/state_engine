@@ -52,8 +52,6 @@
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 
-#define META_TRANSITION( new_state ) transition->state.state = STATE(new_state);  ret = RETURN( Transition )
-
 typedef struct
 {
     uint32_t out;
@@ -238,7 +236,7 @@ static lca_t DetermineLCA( uint32_t in_depth,
 static state_ret_t State_TransitionStart( state_t * this, event_t s )
 {
     state_ret_t ret;
-    HANDLED();
+    ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
@@ -258,7 +256,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
             /* Find common ancestor */
             transition->lca = DetermineLCA( transition->in_depth, transition->path_in, transition->out_depth, transition->path_out );
             /* Begin exiting */
-            META_TRANSITION( TransitionExiting );
+            ret = TRANSITION( this, TransitionExiting );
         }
             break;
         case EVENT( None ):
@@ -273,7 +271,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
 static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 {
     state_ret_t ret;
-    HANDLED();
+    ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
@@ -281,7 +279,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
         case EVENT( Enter ):
         {
             uint32_t jdx = transition->lca.in - 1U;
-            HANDLED();
+            ret = HANDLED(this);
             for( uint32_t idx = 0;  idx < ( transition->lca.in - 0U ); idx++ )
             {
                 transition->state.state = *transition->path_in[jdx];
@@ -292,12 +290,12 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
                 {
                     transition->source = *transition->path_in[jdx + 1U];
                     transition->target = transition->state.state;
-                    META_TRANSITION( TransitionStart );
+                    ret = TRANSITION(this, TransitionStart );
                     break;
                 }
                 else
                 {
-                    HANDLED();
+                    ret = HANDLED(this);
                 }
             }
 
@@ -316,14 +314,14 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 static state_ret_t State_TransitionExiting( state_t * this, event_t s )
 {
     state_ret_t ret;
-    HANDLED();
+    ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
 
     switch( s )
     {
         case EVENT( Enter ):
         {
-            META_TRANSITION( TransitionEntering );
+            ret = TRANSITION(this, TransitionEntering );
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->state.state = *transition->path_out[idx];
@@ -342,12 +340,12 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                     }
                     
                     transition->target = transition->state.state;
-                    META_TRANSITION( TransitionStart );
+                    ret = TRANSITION(this, TransitionStart );
                     break;
                 }
                 else
                 {
-                    META_TRANSITION( TransitionEntering );
+                    ret = TRANSITION(this, TransitionEntering );
                 }
             } 
         }

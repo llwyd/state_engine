@@ -76,19 +76,19 @@ static state_ret_t State_A( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Tick):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToB):
-      TRANSITION( B );
+      ret = TRANSITION( this, B );
       break;
     default:
-      NO_PARENT();
+      ret = NO_PARENT(this);
       break;
   }
 
@@ -102,19 +102,19 @@ static state_ret_t State_B( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Tick):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToA0):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     default:
-      NO_PARENT();
+      ret = NO_PARENT(this);
       break;
   }
   return ret;
@@ -127,31 +127,31 @@ static state_ret_t State_A0( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToA):
-      TRANSITION( A );
+      ret = TRANSITION( this, A );
       break;
     case EVENT(TransitionToA1):
-      TRANSITION( A1 );
+      ret = TRANSITION( this, A1 );
       break;
     case EVENT(TransitionToB):
-      TRANSITION( B );
+      ret = TRANSITION( this, B );
       break;
     case EVENT(TransitionToB0):
-      TRANSITION( B0 );
+      ret = TRANSITION( this, B0 );
       break;
     case EVENT(TransitionToA0):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     case EVENT(TransitionToB1):
-      TRANSITION( B1 );
+      ret = TRANSITION( this, B1 );
       break;
     default:
-      PARENT( A );
+      ret = PARENT( this, A );
       break;
   }
 
@@ -165,16 +165,16 @@ static state_ret_t State_A1( state_t * this, event_t s )
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToA0):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     default:
-      PARENT( A );
+      ret = PARENT( this, A );
       break;
   }
 
@@ -188,16 +188,16 @@ static state_ret_t State_B0( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToA0):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     default:
-      PARENT( B );
+      ret = PARENT( this, B );
       break;
   }
   return ret;
@@ -210,16 +210,16 @@ static state_ret_t State_B1( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      TRANSITION( A1 );
+      ret = TRANSITION( this, A1 );
       break;
     case EVENT(Exit):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToA0):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     default:
-      PARENT( B );
+      ret = PARENT( this, B );
       break;
   }
   return ret;
@@ -232,19 +232,19 @@ static state_ret_t State_C( state_t * this, event_t s)
   switch( s )
   {
     case EVENT(Enter):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(Exit):
-      TRANSITION( A0 );
+      ret = TRANSITION( this, A0 );
       break;
     case EVENT(Tick):
-      HANDLED();
+      ret = HANDLED(this);
       break;
     case EVENT(TransitionToB):
-      TRANSITION( B );
+      ret = TRANSITION( this, B );
       break;
     default:
-      NO_PARENT();
+      ret = NO_PARENT(this);
       break;
   }
 
