@@ -1,4 +1,4 @@
-# Boilerplate
+# C Boilerplate
 
 Various boilerplate code I've made for use in projects.
 
