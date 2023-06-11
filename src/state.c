@@ -284,7 +284,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
             {
                 transition->state.state = *transition->path_in[jdx];
                 jdx--;
-                STATE_EXECUTE( &transition->state, EVENT( Enter ) );
+                STATE_EXECUTE( this, EVENT( Enter ) );
                 STATE_ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
@@ -325,7 +325,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->state.state = *transition->path_out[idx];
-                STATE_EXECUTE( &transition->state, EVENT( Exit ) );
+                STATE_EXECUTE( this, EVENT( Exit ) );
                 STATE_ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
