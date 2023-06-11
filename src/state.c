@@ -87,20 +87,14 @@ static lca_t DetermineLCA( uint32_t in_depth,
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
     static history_fifo_t state_history;
-
+    static state_history_data_t hist;
     extern void STATE_UnitTestInit( void );
     #define STATE_EXECUTE( current_state, current_event ) \
-    { \
-        state_history_data_t hist = \
-        { \
-            .state=(current_state)->state, \
-            .event=(current_event), \
-        }; \
-        FIFO_Enqueue(&state_history, hist);\
-        ret =  (current_state)->state( (current_state), (current_event) ); \
-    }
+        ( (hist.state=(current_state)->state, hist.event=(current_event),\
+          FIFO_Enqueue(&state_history, hist) ),\
+          (current_state)->state( (current_state), (current_event))) 
 #else
-    #define STATE_EXECUTE( current_state, current_event ) ret = (current_state)->state( (current_state), (current_event) )
+    #define STATE_EXECUTE( current_state, current_event ) (current_state)->state( (current_state), (current_event) )
 #endif
 
 extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( state_t * this, event_t s ) )
@@ -122,7 +116,7 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
     {
         STATE_ASSERT( idx > 0U );
         state->state = *init_path[ idx - 1U ];
-        STATE_EXECUTE( state, EVENT( Enter ) );
+        ret = STATE_EXECUTE( state, EVENT( Enter ) );
         STATE_ASSERT( ret == RETURN( Handled ) );
     }
 
@@ -133,6 +127,9 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
 extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
 {
     state_func_t previous = state->state;
+
+    /* Cannot use the STATE_EXECUTE macro here else
+     * unit tests will fail */
     state_ret_t ret = state->state( state, s );
 
     STATE_ASSERT( ret != RETURN( Unhandled ) );
@@ -284,7 +281,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
             {
                 transition->state.state = *transition->path_in[jdx];
                 jdx--;
-                STATE_EXECUTE( this, EVENT( Enter ) );
+                ret = STATE_EXECUTE( this, EVENT( Enter ) );
                 STATE_ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
@@ -325,7 +322,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->state.state = *transition->path_out[idx];
-                STATE_EXECUTE( this, EVENT( Exit ) );
+                ret = STATE_EXECUTE( this, EVENT( Exit ) );
                 STATE_ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
@@ -368,13 +365,11 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
     /* Always guaranteed to execute the first state */
     state_func_t source = state->state;
 
-    state_ret_t ret;
-    
-    STATE_EXECUTE( state, s );
+    state_ret_t ret = STATE_EXECUTE( state, s );
 
     while( ( ret == RETURN( Unhandled ) ) && ( state->state != NULL ) )
     {
-        STATE_EXECUTE( state, s );
+        ret = STATE_EXECUTE( state, s );
     }
 
     if( ret == RETURN( Transition ) )
