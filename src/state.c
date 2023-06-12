@@ -52,6 +52,9 @@
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 
+#define SIGNALS(SIG)
+GENERATE_SIGNALS(SIGNALS);
+
 typedef struct
 {
     uint32_t out;

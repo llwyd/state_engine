@@ -4,21 +4,22 @@
 #include <string.h>
 
 #define SIGNALS(SIG) \
-  SIG( TransitionToA ) \
-  SIG( TransitionToB ) \
-  SIG( TransitionToA0 ) \
-  SIG( TransitionToA1 ) \
-  SIG( TransitionToB0 ) \
-  SIG( TransitionToB1 ) \
+    SIG(Tick) \
+    SIG( TransitionToA ) \
+    SIG( TransitionToB ) \
+    SIG( TransitionToA0 ) \
+    SIG( TransitionToA1 ) \
+    SIG( TransitionToB0 ) \
+    SIG( TransitionToB1 ) \
 
 #define STATES(ST) \
-  ST( A ) \
-  ST( B ) \
-  ST( A0 ) \
-  ST( A1 ) \
-  ST( B0 ) \
-  ST( B1 ) \
-  ST( C ) \
+    ST( A ) \
+    ST( B ) \
+    ST( A0 ) \
+    ST( A1 ) \
+    ST( B0 ) \
+    ST( B1 ) \
+    ST( C ) \
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_STATE_PROTOTYPES( STATES );
@@ -263,7 +264,10 @@ void tearDown( void )
 
 static void test_STATE_Preprocessor( void )
 {
-    TEST_ASSERT_EQUAL( EVENT(Tick), EVENT(DefaultCount));
+    TEST_ASSERT_EQUAL( EVENT(None),     0U);
+    TEST_ASSERT_EQUAL( EVENT(Enter),    1U);
+    TEST_ASSERT_EQUAL( EVENT(Exit),     2U);
+    TEST_ASSERT_EQUAL( EVENT(Tick),     3U);
 }
 
 static void test_STATE_FIFOInit( void )
