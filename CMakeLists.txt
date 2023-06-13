@@ -11,6 +11,7 @@ include_directories( tests.out PRIVATE unity )
 include_directories( tests.out PRIVATE src )
 
 add_executable( tests.out
+                src/assert_bp.h
                 src/fifo_base.h
                 src/fifo_base.c
                 src/state.c

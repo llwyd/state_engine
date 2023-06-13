@@ -6,49 +6,8 @@
  *
  */
 
+#include "assert_bp.h"
 #include "state.h"
-
-#ifdef TARGET_ARM
-    #define STATE_ENTER_CRITICAL { asm("CPSID IF"); }
-    #define STATE_EXIT_CRITICAL  { asm("CPSIE IF"); }
-    #define STATE_ASSERT( c ) \
-        { \
-            if ( !(c) ) \
-            { \
-                asm("CPSID IF"); \
-                while(1) \
-                { \
-                } \
-            } \
-        } 
-
-#elif TARGET_ESP32
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <assert.h>
-    
-    #define STATE_ENTER_CRITICAL {  }
-    #define STATE_EXIT_CRITICAL  {  }
-    
-    #define STATE_ASSERT( c ) \
-    { \
-        assert( (c) ); \
-    } 
-#else
-//cppcheck-suppress misra-c2012-21.6
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <assert.h>
-    
-    #define STATE_ENTER_CRITICAL {  }
-    #define STATE_EXIT_CRITICAL  {  }
-
-    #define STATE_ASSERT( c ) \
-    { \
-        assert( (c) ); \
-    } 
-#endif
-
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 
@@ -102,8 +61,8 @@ static lca_t DetermineLCA( uint32_t in_depth,
 
 extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( state_t * this, event_t s ) )
 {
-    STATE_ASSERT( state != NULL );
-    STATE_ASSERT( initial_state != NULL );
+    ASSERT( state != NULL );
+    ASSERT( initial_state != NULL );
 
     state_func_t init_path[ MAX_NESTED_STATES ];
     state->state = initial_state;
@@ -112,18 +71,18 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
     uint32_t idx = TraverseToRoot( state, init_path );
 
     /* This assertion failing implies an initial state of NULL */
-    STATE_ASSERT( idx > 0U );
-    STATE_ASSERT( idx < MAX_NESTED_STATES );
+    ASSERT( idx > 0U );
+    ASSERT( idx < MAX_NESTED_STATES );
 
     for( ; idx > 0U; idx-- )
     {
-        STATE_ASSERT( idx > 0U );
+        ASSERT( idx > 0U );
         state->state = *init_path[ idx - 1U ];
         ret = STATE_EXECUTE( state, EVENT( Enter ) );
-        STATE_ASSERT( ret == RETURN( Handled ) );
+        ASSERT( ret == RETURN( Handled ) );
     }
 
-    STATE_ASSERT( state->state == initial_state );
+    ASSERT( state->state == initial_state );
 }
 
 /* A 'simple' dispatch for a flat state machine */
@@ -135,7 +94,7 @@ extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
      * unit tests will fail */
     state_ret_t ret = state->state( state, s );
 
-    STATE_ASSERT( ret != RETURN( Unhandled ) );
+    ASSERT( ret != RETURN( Unhandled ) );
 
     while ( ret == RETURN( Transition ) )
     {
@@ -147,8 +106,8 @@ extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
 
 static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] )
 {
-    STATE_ASSERT( source != NULL );
-    STATE_ASSERT( path != NULL );
+    ASSERT( source != NULL );
+    ASSERT( path != NULL );
 
     state_ret_t ret;
     uint32_t path_length = 0U;
@@ -162,9 +121,9 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
             break;
         }
 
-        STATE_ASSERT( source->state != NULL );
+        ASSERT( source->state != NULL );
         ret = source->state( source, EVENT( None ) );
-        STATE_ASSERT( ret == RETURN( Unhandled ) );
+        ASSERT( ret == RETURN( Unhandled ) );
     }
 
     return path_length;
@@ -229,13 +188,13 @@ static lca_t DetermineLCA( uint32_t in_depth,
         }
     }
 
-    STATE_ASSERT( found_lca );
+    ASSERT( found_lca );
     return lca;
 }
 
 static state_ret_t State_TransitionStart( state_t * this, event_t s )
 {
-    STATE_ASSERT( s < EVENT(EventCount));
+    ASSERT( s < EVENT(EventCount));
     state_ret_t ret;
     ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
@@ -261,7 +220,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
         }
             break;
         case EVENT( None ):
-            STATE_ASSERT( false );
+            ASSERT( false );
             break;
         default:
             break;
@@ -271,7 +230,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
 
 static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 {
-    STATE_ASSERT( s < EVENT(EventCount));
+    ASSERT( s < EVENT(EventCount));
     state_ret_t ret;
     ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
@@ -287,7 +246,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
                 transition->state.state = *transition->path_in[jdx];
                 jdx--;
                 ret = STATE_EXECUTE( this, EVENT( Enter ) );
-                STATE_ASSERT( ret != RETURN( Unhandled ) );
+                ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
                     transition->source = *transition->path_in[jdx + 1U];
@@ -304,7 +263,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
         }
             break;
         case EVENT( None ):
-            STATE_ASSERT( false );
+            ASSERT( false );
             break;
         default:
             break;
@@ -315,7 +274,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
 
 static state_ret_t State_TransitionExiting( state_t * this, event_t s )
 {
-    STATE_ASSERT( s < EVENT(EventCount));
+    ASSERT( s < EVENT(EventCount));
     state_ret_t ret;
     ret = HANDLED(this);
     transition_t * transition = ( transition_t * ) this;
@@ -329,7 +288,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
             {
                 transition->state.state = *transition->path_out[idx];
                 ret = STATE_EXECUTE( this, EVENT( Exit ) );
-                STATE_ASSERT( ret != RETURN( Unhandled ) );
+                ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
                     uint32_t next_state = idx + 1;
@@ -354,7 +313,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
         }
             break;
         case EVENT( None ):
-            STATE_ASSERT( false );
+            ASSERT( false );
             break;
         default:
             break;
@@ -364,9 +323,9 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
 
 extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
 {
-    STATE_ASSERT( state->state != NULL );
-    STATE_ASSERT( state != NULL );
-    STATE_ASSERT( s != (event_t)EVENT( None ) );
+    ASSERT( state->state != NULL );
+    ASSERT( state != NULL );
+    ASSERT( s != (event_t)EVENT( None ) );
 
     /* Always guaranteed to execute the first state */
     state_func_t source = state->state;

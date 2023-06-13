@@ -1,10 +1,13 @@
 #include "fifo_tests.h"
 #include "fifo_base.h"
-//#include "fifo.h"
+#include "state.h"
 #include "unity.h"
 #include <string.h>
 
 #define FIFO_LEN (32U)
+
+#define SIGNALS(SIG)
+GENERATE_SIGNALS(SIGNALS);
 
 typedef struct
 {
@@ -16,6 +19,8 @@ typedef struct
 static void Enqueue( fifo_base_t * const fifo );
 static void Dequeue( fifo_base_t * const fifo );
 static void Flush( fifo_base_t * const fifo );
+
+event_t e = EVENT(None);
 
 void Init( test_fifo_t * fifo )
 {
