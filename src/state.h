@@ -12,7 +12,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 /* Core State Machine Defines and helper macros */
 #define DEFAULT_SIGNALS(SIGNAL) \
     SIGNAL( None ) \
@@ -30,6 +29,7 @@
 #endif /* MAX_NESTED_STATES */
 
 #define SIGNAL_ENUM(x) event_##x,
+#define SIGNAL_ENUM__(x) event_##x,
 #define SIGNAL_ENUM_(x) event_##x
 
 #define RETURN(x) return_##x
@@ -46,15 +46,15 @@
     { \
         DEFAULT_SIGNALS(SIGNAL_ENUM) \
         SIG( SIGNAL_ENUM ) \
-        SIGNAL_ENUM_( EventCount ) \
+        SIGNAL_ENUM( EventCount ) \
     }
 
 #define GENERATE_SIGNAL_STRINGS( SIG ) \
     static const char *event_str[] = \
     { \
         DEFAULT_SIGNALS( SIGNAL_LOOKUP_ ) \
-        SIGNAL_LOOKUP_( Tick ) \
         SIG( SIGNAL_LOOKUP_ ) \
+        SIGNAL_ENUM( EventCount ) \
     } \
 
 #define GENERATE_STATE_PROTOTYPES( ST ) \
