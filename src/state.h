@@ -29,14 +29,13 @@
 #endif /* MAX_NESTED_STATES */
 
 #define SIGNAL_ENUM(x) event_##x,
-#define SIGNAL_ENUM__(x) event_##x,
 #define SIGNAL_ENUM_(x) event_##x
 
 #define RETURN(x) return_##x
 #define EVENT(x) SIGNAL_ENUM_(x)
 
 #define STATE(x) State_##x
-#define STATE_PROTOTYPE_(x) static state_ret_t STATE(x) ( state_t * this, event_t s );
+#define DEFINE_STATE(x) static state_ret_t STATE(x) ( state_t * this, event_t s )
 
 #define SIGNAL_STR_(x) #x
 #define SIGNAL_LOOKUP_(x) [SIGNAL_ENUM_(x)] = SIGNAL_STR_(x),
@@ -57,19 +56,11 @@
         SIGNAL_ENUM( EventCount ) \
     } \
 
-#define GENERATE_STATE_PROTOTYPES( ST ) \
-    ST( STATE_PROTOTYPE_ ) \
-
-
 #define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
 
-//cppcheck-suppress misra-c2012-2.5
 #define PARENT( X, parent_state ) ((X)->state = STATE(parent_state), RETURN( Unhandled ) )
-//cppcheck-suppress misra-c2012-2.5
 #define TRANSITION( X, new_state ) ((X)->state = STATE(new_state), RETURN( Transition ))
-//cppcheck-suppress misra-c2012-2.5
 #define HANDLED(X) RETURN ( Handled )
-//cppcheck-suppress misra-c2012-2.5
 #define NO_PARENT(X) ((X)->state = NULL,RETURN( Unhandled ))
 
 /* Signal to send events to a given state */

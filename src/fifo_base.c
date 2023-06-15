@@ -25,16 +25,19 @@ extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
 
 static void virtual_EnQ( fifo_base_t * const fifo )
 {
+    (void)fifo;
     assert(false);
 }
 
 static void virtual_DeQ( fifo_base_t * const fifo )
 {
+    (void)fifo;
     assert(false);
 }
 
 static void virtual_Flush( fifo_base_t * const fifo )
 {
+    (void)fifo;
     assert(false);
 }
 

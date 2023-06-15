@@ -10,19 +10,18 @@
     SIG( TransitionToA0 ) \
     SIG( TransitionToA1 ) \
     SIG( TransitionToB0 ) \
-    SIG( TransitionToB1 ) \
-
-#define STATES(ST) \
-    ST( A ) \
-    ST( B ) \
-    ST( A0 ) \
-    ST( A1 ) \
-    ST( B0 ) \
-    ST( B1 ) \
-    ST( C ) \
+    SIG( TransitionToB1 ) 
 
 GENERATE_SIGNALS( SIGNALS );
-GENERATE_STATE_PROTOTYPES( STATES );
+
+DEFINE_STATE(A);
+DEFINE_STATE(B);
+DEFINE_STATE(A0);
+DEFINE_STATE(A1);
+DEFINE_STATE(B0);
+DEFINE_STATE(B1);
+DEFINE_STATE(C);
+
 
 #define FIFO_LEN (32U)
 

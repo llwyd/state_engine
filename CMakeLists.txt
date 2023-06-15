@@ -32,8 +32,9 @@ target_compile_options( tests.out
                         PUBLIC
                         -Wfatal-errors
                         -Wall
+                        -Wextra
                         -Werror
-                        #-Wpedantic
+                        -Wpedantic
                         -Wpointer-arith
                         -g
                         -DUNIT_TESTS
