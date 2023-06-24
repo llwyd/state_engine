@@ -53,7 +53,7 @@
     { \
         DEFAULT_SIGNALS( SIGNAL_LOOKUP_ ) \
         SIG( SIGNAL_LOOKUP_ ) \
-        SIGNAL_ENUM( EventCount ) \
+        SIGNAL_LOOKUP_( EventCount ) \
     } \
 
 #define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )

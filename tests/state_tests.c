@@ -13,6 +13,7 @@
     SIG( TransitionToB1 ) 
 
 GENERATE_SIGNALS( SIGNALS );
+GENERATE_SIGNAL_STRINGS( SIGNALS );
 
 DEFINE_STATE(A);
 DEFINE_STATE(B);
@@ -263,6 +264,7 @@ void tearDown( void )
 
 static void test_STATE_Preprocessor( void )
 {
+    (void)event_str;
     TEST_ASSERT_EQUAL( EVENT(None),     0U);
     TEST_ASSERT_EQUAL( EVENT(Enter),    1U);
     TEST_ASSERT_EQUAL( EVENT(Exit),     2U);
