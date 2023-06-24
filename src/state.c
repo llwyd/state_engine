@@ -8,6 +8,7 @@
 
 #include "assert_bp.h"
 #include "state.h"
+#include <stddef.h>
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 
