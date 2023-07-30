@@ -32,6 +32,7 @@ typedef struct
     state_func_t target;
     state_func_t source;
     lca_t lca;
+    state_t * storage; /* Store the original state state */
 }
 transition_t;
 
@@ -244,14 +245,14 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
             ret = HANDLED(this);
             for( uint32_t idx = 0;  idx < ( transition->lca.in - 0U ); idx++ )
             {
-                transition->state.state = *transition->path_in[jdx];
+                transition->storage->state = *transition->path_in[jdx];
                 jdx--;
-                ret = STATE_EXECUTE( this, EVENT( Enter ) );
+                ret = STATE_EXECUTE( transition->storage, EVENT( Enter ) );
                 ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
                     transition->source = *transition->path_in[jdx + 1U];
-                    transition->target = transition->state.state;
+                    transition->target = transition->storage->state;
                     ret = TRANSITION(this, TransitionStart );
                     break;
                 }
@@ -287,8 +288,8 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
             ret = TRANSITION(this, TransitionEntering );
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
-                transition->state.state = *transition->path_out[idx];
-                ret = STATE_EXECUTE( this, EVENT( Exit ) );
+                transition->storage->state = *transition->path_out[idx];
+                ret = STATE_EXECUTE( transition->storage, EVENT( Exit ) );
                 ASSERT( ret != RETURN( Unhandled ) );
                 if( ret == RETURN( Transition ) )
                 {
@@ -302,7 +303,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                         transition->source = NULL;
                     }
                     
-                    transition->target = transition->state.state;
+                    transition->target = transition->storage->state;
                     ret = TRANSITION(this, TransitionStart );
                     break;
                 }
@@ -350,13 +351,13 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
         /* FSM within HSM to handle transitions */
         transition_t transition =
         {
-            .state = *state,
             .path_out = path_out,
             .path_in = path_in,
             .in_depth = 0U,
             .out_depth = 0U,
             .source = source,
             .target = target,
+            .storage = state,
         };
     
         /* Dogfooding to handle transition */
