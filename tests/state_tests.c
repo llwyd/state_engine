@@ -10,7 +10,8 @@
     SIG( TransitionToA0 ) \
     SIG( TransitionToA1 ) \
     SIG( TransitionToB0 ) \
-    SIG( TransitionToB1 ) 
+    SIG( TransitionToB1 ) \
+    SIG( TransitionToA01 )  
 
 GENERATE_SIGNALS( SIGNALS );
 GENERATE_SIGNAL_STRINGS( SIGNALS );
@@ -19,11 +20,11 @@ DEFINE_STATE(A);
 DEFINE_STATE(B);
 DEFINE_STATE(A0);
 DEFINE_STATE(A00);
+DEFINE_STATE(A01);
 DEFINE_STATE(A1);
 DEFINE_STATE(B0);
 DEFINE_STATE(B1);
 DEFINE_STATE(C);
-
 
 #define FIFO_LEN (32U)
 
@@ -174,6 +175,29 @@ static state_ret_t State_A00( state_t * this, event_t s )
       break;
     case EVENT(TransitionToA1):
       ret = TRANSITION( this, A1 );
+      break;
+    case EVENT(TransitionToA01):
+      ret = TRANSITION( this, A01 );
+      break;
+    default:
+      ret = PARENT( this, A0 );
+      break;
+  }
+
+  return ret;
+}
+
+static state_ret_t State_A01( state_t * this, event_t s )
+{
+  state_ret_t ret;
+  
+  switch( s )
+  {
+    case EVENT(Enter):
+      ret = HANDLED(this);
+      break;
+    case EVENT(Exit):
+      ret = HANDLED(this);
       break;
     default:
       ret = PARENT( this, A0 );
@@ -478,6 +502,30 @@ static void test_STATE_TransitionSharedParent( void )
     TEST_ASSERT_EQUAL( state.state, STATE( B ) );
 }
 
+static void test_STATE_TransitionSharedParentLowestLevel( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
+
+    state.state = STATE( A00 );
+
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA01 ) );
+    TEST_ASSERT_EQUAL( history->base.fill, 3U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A00 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A00 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A01 ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA01 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A01 ) );
+}
+
 static void test_STATE_TransitionNoSharedParent( void )
 {
     STATE_UnitTestInit();
@@ -706,6 +754,7 @@ extern void STATETestSuite(void)
     RUN_TEST( test_STATE_SingleEvent );
     RUN_TEST( test_STATE_SingleUnhandledEvent );
     RUN_TEST( test_STATE_TransitionSharedParent );
+    RUN_TEST( test_STATE_TransitionSharedParentLowestLevel );
     RUN_TEST( test_STATE_TransitionNoSharedParent );
     RUN_TEST( test_STATE_TransitionUpAndAcross );
     RUN_TEST( test_STATE_TransitionUpAndAcross3Deep );
