@@ -18,6 +18,7 @@ GENERATE_SIGNAL_STRINGS( SIGNALS );
 DEFINE_STATE(A);
 DEFINE_STATE(B);
 DEFINE_STATE(A0);
+DEFINE_STATE(A00);
 DEFINE_STATE(A1);
 DEFINE_STATE(B0);
 DEFINE_STATE(B1);
@@ -153,6 +154,29 @@ static state_ret_t State_A0( state_t * this, event_t s)
       break;
     default:
       ret = PARENT( this, A );
+      break;
+  }
+
+  return ret;
+}
+
+static state_ret_t State_A00( state_t * this, event_t s )
+{
+  state_ret_t ret;
+  
+  switch( s )
+  {
+    case EVENT(Enter):
+      ret = HANDLED(this);
+      break;
+    case EVENT(Exit):
+      ret = HANDLED(this);
+      break;
+    case EVENT(TransitionToA1):
+      ret = TRANSITION( this, A1 );
+      break;
+    default:
+      ret = PARENT( this, A0 );
       break;
   }
 
@@ -508,6 +532,32 @@ static void test_STATE_TransitionUpAndAcross( void )
     TEST_ASSERT_EQUAL( state.state, STATE( B ) );
 }
 
+static void test_STATE_TransitionUpAndAcross3Deep( void )
+{
+    STATE_UnitTestInit();
+    state_t state;
+    fifo_base_t * history_base = STATE_GetHistory();
+    history_fifo_t * history = (history_fifo_t*)history_base;
+
+    state.state = STATE( A00 );
+
+    STATEMACHINE_Dispatch( &state, EVENT( TransitionToA1 ) );
+    TEST_ASSERT_EQUAL( history->base.fill, 4U ); 
+    TEST_ASSERT_EQUAL( history->queue[0].state, STATE( A00 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].state, STATE( A00 ) );
+    TEST_ASSERT_EQUAL( history->queue[2].state, STATE( A0 ) );
+    TEST_ASSERT_EQUAL( history->queue[3].state, STATE( A1 ) );
+    TEST_ASSERT_EQUAL( history->queue[5].state, NULL );
+    
+    TEST_ASSERT_EQUAL( history->queue[0].event, EVENT( TransitionToA1 ) );
+    TEST_ASSERT_EQUAL( history->queue[1].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[2].event, EVENT( Exit ) );
+    TEST_ASSERT_EQUAL( history->queue[3].event, EVENT( Enter ) );
+    TEST_ASSERT_EQUAL( history->queue[4].event, NULL );
+
+    TEST_ASSERT_EQUAL( state.state, STATE( A1 ) );
+}
+
 static void test_STATE_TransitionAcrossAndDown( void )
 {
     STATE_UnitTestInit();
@@ -658,6 +708,7 @@ extern void STATETestSuite(void)
     RUN_TEST( test_STATE_TransitionSharedParent );
     RUN_TEST( test_STATE_TransitionNoSharedParent );
     RUN_TEST( test_STATE_TransitionUpAndAcross );
+    RUN_TEST( test_STATE_TransitionUpAndAcross3Deep );
     RUN_TEST( test_STATE_TransitionAcrossAndDown );
     RUN_TEST( test_STATE_TransitionOutIntoParent );
     RUN_TEST( test_STATE_TransitionIntoItself );

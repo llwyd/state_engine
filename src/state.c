@@ -127,7 +127,8 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
         ret = source->state( source, EVENT( None ) );
         ASSERT( ret == RETURN( Unhandled ) );
     }
-
+    
+    ASSERT( path_length <= MAX_NESTED_STATES );
     return path_length;
 }
 
@@ -144,8 +145,8 @@ static lca_t DetermineLCA( uint32_t in_depth,
     uint32_t in_idx = in_depth;
     uint32_t out_idx = out_depth;
 
-    lca.in = in_idx;
-    lca.out = out_idx;
+    lca.in = in_idx - 1U;
+    lca.out = out_idx - 1U;
     for( uint32_t idx = 0U; idx < min_depth; idx++ )
     {
         if( in_path[in_idx] != out_path[out_idx] )
