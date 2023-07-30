@@ -12,6 +12,10 @@
 
 _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be greater than 0" );
 
+#define STATES_BUFFER_LEN (MAX_NESTED_STATES + 1U)
+
+_Static_assert( STATES_BUFFER_LEN > 0U, "Max number of nested states must be greater than 0" );
+
 #define SIGNALS(SIG)
 GENERATE_SIGNALS(SIGNALS);
 
@@ -41,12 +45,12 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s );
 static state_ret_t State_TransitionExiting( state_t * this, event_t s );
 static state_ret_t State_TransitionEntering( state_t * this, event_t s );
 
-static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] );
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ STATES_BUFFER_LEN ] );
 
 static lca_t DetermineLCA( uint32_t in_depth, 
-        state_func_t in_path[ MAX_NESTED_STATES ], 
+        state_func_t in_path[ STATES_BUFFER_LEN ], 
         uint32_t out_depth,
-        state_func_t out_path[ MAX_NESTED_STATES ] );
+        state_func_t out_path[ STATES_BUFFER_LEN ] );
 
 /* These macros are for recording history of state executions, transitions etc for unit testing */
 #ifdef UNIT_TESTS
@@ -66,7 +70,7 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
     ASSERT( state != NULL );
     ASSERT( initial_state != NULL );
 
-    state_func_t init_path[ MAX_NESTED_STATES ];
+    state_func_t init_path[ STATES_BUFFER_LEN ];
     state->state = initial_state;
     state_ret_t ret;
 
@@ -74,7 +78,7 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
 
     /* This assertion failing implies an initial state of NULL */
     ASSERT( idx > 0U );
-    ASSERT( idx < MAX_NESTED_STATES );
+    ASSERT( idx < STATES_BUFFER_LEN );
 
     for( ; idx > 0U; idx-- )
     {
@@ -106,7 +110,7 @@ extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
     }
 }
 
-static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ MAX_NESTED_STATES ] )
+static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path[ STATES_BUFFER_LEN ] )
 {
     ASSERT( source != NULL );
     ASSERT( path != NULL );
@@ -114,7 +118,7 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
     state_ret_t ret;
     uint32_t path_length = 0U;
     
-    for( path_length = 0U; path_length < MAX_NESTED_STATES; path_length++ )
+    for( path_length = 0U; path_length < STATES_BUFFER_LEN; path_length++ )
     {
         path[ path_length ] = *source->state;
         if( source->state == NULL )
@@ -128,14 +132,14 @@ static inline uint32_t TraverseToRoot( state_t * const source, state_func_t path
         ASSERT( ret == RETURN( Unhandled ) );
     }
     
-    ASSERT( path_length <= MAX_NESTED_STATES );
+    ASSERT( path_length <= STATES_BUFFER_LEN );
     return path_length;
 }
 
 static lca_t DetermineLCA( uint32_t in_depth, 
-        state_func_t in_path[ MAX_NESTED_STATES ], 
+        state_func_t in_path[ STATES_BUFFER_LEN ], 
         uint32_t out_depth, 
-        state_func_t out_path[ MAX_NESTED_STATES ] )
+        state_func_t out_path[ STATES_BUFFER_LEN ] )
 {
     uint32_t min_depth = ( in_depth < out_depth ) ? in_depth : out_depth;
     min_depth++;
@@ -206,7 +210,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
     {
         case EVENT( Enter ):
         {
-            for( uint32_t idx = 0; idx < MAX_NESTED_STATES; idx++ )
+            for( uint32_t idx = 0; idx < STATES_BUFFER_LEN; idx++ )
             {
                 transition->path_in[idx] = NULL;
                 transition->path_out[idx] = NULL;
@@ -295,7 +299,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                 if( ret == RETURN( Transition ) )
                 {
                     uint32_t next_state = idx + 1;
-                    if( next_state < MAX_NESTED_STATES )
+                    if( next_state < STATES_BUFFER_LEN )
                     {
                         transition->source = *transition->path_out[next_state];
                     }
@@ -346,8 +350,8 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
         state_func_t target = state->state; 
     
         /* These hold the history up and down the state tree */
-        state_func_t path_out[ MAX_NESTED_STATES ];
-        state_func_t path_in[ MAX_NESTED_STATES ];
+        state_func_t path_out[ STATES_BUFFER_LEN ];
+        state_func_t path_in[ STATES_BUFFER_LEN ];
 
         /* FSM within HSM to handle transitions */
         transition_t transition =
