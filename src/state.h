@@ -56,7 +56,11 @@
         SIGNAL_LOOKUP_( EventCount ) \
     } \
 
-#define STATE_DEBUG( x ) printf("%s -> %s Event\n", __func__, event_str[x] )
+#define STATE_DEBUG( x ) \
+    if( (uint32_t)x > 0U ) \
+    { \
+        printf("%s -> %s Event\n", __func__, event_str[x] ); \
+    }
 
 #define PARENT( X, parent_state ) ((X)->state = STATE(parent_state), RETURN( Unhandled ) )
 #define TRANSITION( X, new_state ) ((X)->state = STATE(new_state), RETURN( Transition ))

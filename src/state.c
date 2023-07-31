@@ -87,7 +87,8 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
         ret = STATE_EXECUTE( state, EVENT( Enter ) );
         ASSERT( ret == RETURN( Handled ) );
     }
-
+    
+    state->state = initial_state;
     ASSERT( state->state == initial_state );
 }
 
