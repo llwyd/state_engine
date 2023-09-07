@@ -8,6 +8,7 @@
 
 #define FIFO_Enqueue(f, val) ((f)->data = (val), FIFO_EnQ((fifo_base_t *)(f)))
 #define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)(f))), (f)->data)
+#define FIFO_Peek(f) ((FIFO_Pk((fifo_base_t *)(f))), (f)->data)
 
 #define ENQUEUE_BOILERPLATE(TYPE, BASE) \
     { \
@@ -27,6 +28,13 @@
         fifo->base.read_index++; \
         fifo->base.fill--; \
         fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) ); \
+    }
+
+#define PEEK_BOILERPLATE(TYPE, BASE) \
+    { \
+        TYPE * fifo = ((TYPE *)(BASE)); \
+        \
+        fifo->data = fifo->queue[ fifo->base.read_index ]; \
     }
 
 #define FLUSH_BOILERPLATE(TYPE, BASE) \
@@ -52,6 +60,7 @@ struct fifo_vfunc_t
 {
     void (*enq)(fifo_base_t * const base);
     void (*deq)(fifo_base_t * const base);
+    void (*peek)(fifo_base_t * const base);
     void (*flush)(fifo_base_t * const base);
 };
 
@@ -79,6 +88,15 @@ inline static void FIFO_Flush( fifo_base_t * const fifo )
     assert( fifo->vfunc != NULL );
 
     (fifo->vfunc->flush)(fifo);
+}
+
+inline static void FIFO_Pk( fifo_base_t * const fifo )
+{
+    assert( fifo != NULL );
+    assert( fifo->vfunc != NULL );
+    assert( fifo->fill > 0U );
+
+    (fifo->vfunc->peek)(fifo);
 }
 
 extern void FIFO_Init( fifo_base_t * const fifo, uint32_t size );

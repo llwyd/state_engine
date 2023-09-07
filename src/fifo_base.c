@@ -3,6 +3,7 @@
 static void virtual_EnQ( fifo_base_t * fifo );
 static void virtual_DeQ( fifo_base_t * fifo );
 static void virtual_Flush( fifo_base_t * fifo );
+static void virtual_Peek( fifo_base_t * fifo );
 
 extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
 {
@@ -14,6 +15,7 @@ extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
         .enq = virtual_EnQ,
         .deq = virtual_DeQ,
         .flush = virtual_Flush,
+        .peek = virtual_Peek,
     };
 
     fifo->vfunc = &vfunc;
@@ -36,6 +38,12 @@ static void virtual_DeQ( fifo_base_t * const fifo )
 }
 
 static void virtual_Flush( fifo_base_t * const fifo )
+{
+    (void)fifo;
+    assert(false);
+}
+
+static void virtual_Peek( fifo_base_t * const fifo )
 {
     (void)fifo;
     assert(false);

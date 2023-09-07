@@ -19,6 +19,7 @@ typedef struct
 static void Enqueue( fifo_base_t * const fifo );
 static void Dequeue( fifo_base_t * const fifo );
 static void Flush( fifo_base_t * const fifo );
+static void Peek( fifo_base_t * const fifo );
 
 event_t e = EVENT(None);
 
@@ -29,6 +30,7 @@ void Init( test_fifo_t * fifo )
         .enq = Enqueue,
         .deq = Dequeue,
         .flush = Flush,
+        .peek = Peek,
     };
     FIFO_Init( (fifo_base_t *)fifo, FIFO_LEN );
     
@@ -53,6 +55,12 @@ void Flush( fifo_base_t * const base )
 {
     assert(base != NULL );
     FLUSH_BOILERPLATE( test_fifo_t, base );
+}
+
+void Peek( fifo_base_t * const base )
+{
+    assert(base != NULL );
+    PEEK_BOILERPLATE( test_fifo_t, base );
 }
 
 void test_FIFO_Init(void)
@@ -191,6 +199,29 @@ void test_FIFO_Flush(void)
     TEST_ASSERT_EQUAL( 0U, fifo.base.write_index );
 }
 
+void test_FIFO_Peek(void)
+{
+    test_fifo_t fifo;
+    Init(&fifo);
+
+    FIFO_Enqueue(&fifo, 0x12345678);
+    
+    TEST_ASSERT_EQUAL( 32U, fifo.base.max );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
+    TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
+    
+    uint32_t value = FIFO_Peek(&fifo);
+
+    TEST_ASSERT_EQUAL( 32U, fifo.base.max );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.fill );
+    TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo.base.write_index );
+    TEST_ASSERT_EQUAL( 0x12345678, value );
+    TEST_ASSERT_EQUAL( 0x12345678, fifo.queue[0U]);
+}
+
 extern void FIFOTestSuite(void)
 {
     RUN_TEST(test_FIFO_Init);
@@ -201,5 +232,6 @@ extern void FIFOTestSuite(void)
     RUN_TEST(test_FIFO_IsEmpty);
     RUN_TEST(test_FIFO_IsFull);
     RUN_TEST(test_FIFO_Flush);
+    RUN_TEST(test_FIFO_Peek);
 }
 
