@@ -17,7 +17,7 @@ extern void History_Init( history_fifo_t * fifo )
     FIFO_Init( (fifo_base_t *)fifo, FIFO_LEN );
     
     fifo->base.vfunc = &vfunc;
-    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->data));
+    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->in));
 }
 
 static void Enqueue( fifo_base_t * const base )

@@ -32,7 +32,8 @@ typedef struct
 {
     fifo_base_t base;
     event_t queue[FIFO_LEN];
-    event_t data;
+    event_t in;
+    event_t out;
 } event_fifo_t;
 
 static void Enqueue( fifo_base_t * const fifo );
@@ -50,8 +51,9 @@ static void Init( event_fifo_t * fifo )
     FIFO_Init( (fifo_base_t *)fifo, FIFO_LEN );
     
     fifo->base.vfunc = &vfunc;
-    fifo->data = 0x0;
-    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->data));
+    fifo->in = 0x0;
+    fifo->out = 0x0;
+    memset(fifo->queue, 0x00, FIFO_LEN * sizeof(fifo->in));
 }
 
 void Enqueue( fifo_base_t * const base )

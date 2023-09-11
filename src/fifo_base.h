@@ -6,15 +6,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define FIFO_Enqueue(f, val) ((f)->data = (val), FIFO_EnQ((fifo_base_t *)(f)))
-#define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)(f))), (f)->data)
-#define FIFO_Peek(f) ((FIFO_Pk((fifo_base_t *)(f))), (f)->data)
+#define FIFO_Enqueue(f, val) ((f)->in = (val), FIFO_EnQ((fifo_base_t *)(f)))
+#define FIFO_Dequeue(f) ((FIFO_DeQ((fifo_base_t *)(f))), (f)->out)
+#define FIFO_Peek(f) ((FIFO_Pk((fifo_base_t *)(f))), (f)->out)
 
 #define ENQUEUE_BOILERPLATE(TYPE, BASE) \
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
-        fifo->queue[ fifo->base.write_index ] = fifo->data; \
+        fifo->queue[ fifo->base.write_index ] = fifo->in; \
         fifo->base.write_index++; \
         fifo->base.fill++; \
         fifo->base.write_index = ( fifo->base.write_index & ( fifo->base.max - 1U ) ); \
@@ -24,7 +24,7 @@
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
-        fifo->data = fifo->queue[ fifo->base.read_index ]; \
+        fifo->out = fifo->queue[ fifo->base.read_index ]; \
         fifo->base.read_index++; \
         fifo->base.fill--; \
         fifo->base.read_index = ( fifo->base.read_index & ( fifo->base.max - 1U ) ); \
@@ -34,7 +34,7 @@
     { \
         TYPE * fifo = ((TYPE *)(BASE)); \
         \
-        fifo->data = fifo->queue[ fifo->base.read_index ]; \
+        fifo->out = fifo->queue[ fifo->base.read_index ]; \
     }
 
 #define FLUSH_BOILERPLATE(TYPE, BASE) \

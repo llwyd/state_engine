@@ -16,7 +16,8 @@ typedef struct
 {
     fifo_base_t base;
     state_history_data_t queue[UNIT_TEST_HISTORY_SIZE];
-    state_history_data_t data;
+    state_history_data_t in;
+    state_history_data_t out;
 }
 history_fifo_t;
 
