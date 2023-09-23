@@ -224,7 +224,7 @@ static state_ret_t State_TransitionStart( state_t * this, event_t s )
             /* Find common ancestor */
             transition->lca = DetermineLCA( transition->in_depth, transition->path_in, transition->out_depth, transition->path_out );
             /* Begin exiting */
-            ret = TRANSITION( this, TransitionExiting );
+            ret = TRANSITION( this, STATE(TransitionExiting) );
         }
             break;
         case EVENT( None ):
@@ -259,7 +259,7 @@ static state_ret_t State_TransitionEntering( state_t * this, event_t s )
                 {
                     transition->source = *transition->path_in[jdx + 1U];
                     transition->target = transition->storage->state;
-                    ret = TRANSITION(this, TransitionStart );
+                    ret = TRANSITION(this, STATE(TransitionStart) );
                     break;
                 }
                 else
@@ -291,7 +291,7 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
     {
         case EVENT( Enter ):
         {
-            ret = TRANSITION(this, TransitionEntering );
+            ret = TRANSITION(this, STATE(TransitionEntering) );
             for( uint32_t idx = 0; idx < transition->lca.out; idx++ )
             {
                 transition->storage->state = *transition->path_out[idx];
@@ -310,12 +310,12 @@ static state_ret_t State_TransitionExiting( state_t * this, event_t s )
                     }
                     
                     transition->target = transition->storage->state;
-                    ret = TRANSITION(this, TransitionStart );
+                    ret = TRANSITION(this, STATE(TransitionStart) );
                     break;
                 }
                 else
                 {
-                    ret = TRANSITION(this, TransitionEntering );
+                    ret = TRANSITION(this, STATE(TransitionEntering) );
                 }
             } 
         }

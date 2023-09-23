@@ -62,8 +62,8 @@
         printf("%s -> %s Event\n", __func__, event_str[x] ); \
     }
 
-#define PARENT( X, parent_state ) ((X)->state = STATE(parent_state), RETURN( Unhandled ) )
-#define TRANSITION( X, new_state ) ((X)->state = STATE(new_state), RETURN( Transition ))
+#define PARENT( X, parent_state ) ((X)->state = parent_state, RETURN( Unhandled ) )
+#define TRANSITION( X, new_state ) ((X)->state = new_state, RETURN( Transition ))
 #define HANDLED(X) RETURN ( Handled )
 #define NO_PARENT(X) ((X)->state = NULL,RETURN( Unhandled ))
 
