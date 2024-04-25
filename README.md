@@ -1,13 +1,15 @@
 # C Boilerplate
 
-Various boilerplate code I've made for use in projects.
+[![Unit Test CI](https://github.com/llwyd/boilerplate/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/llwyd/boilerplate/actions/workflows/unit-tests.yml)
+
+Personalised boilerplate code so that I don't have to rewrite it for every project.
 
 ## Summary
 
 - state.c
-    - This is my personal take on that UML state machine design pattern that I use in my various hobby projects. This is generally inspired by Miro Samek's design pattern and writings about state machines which I think are fantastic.
+    - This is my personalised take on the UML state machine design pattern popularised by Miro Samek's writings about state machines (which are fantastic).
 - fifo_base.c
-    -  FIFO 'base class' with functionality for enqueuing, dequeuing etc for any particular type.
+    -  FIFO 'base class' with functionality for enqueuing, dequeuing, peeking etc for any particular type.
 
 # Further reading / references / inspiration
 * [1] [Introduction to Hierarchical State Machines](https://barrgroup.com/embedded-systems/how-to/introduction-hierarchical-state-machines)

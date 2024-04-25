@@ -7,7 +7,8 @@ set (CMAKE_C_STANDARD 11 )
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/ )
 set (CMAKE_BUILD_TYPE Debug )
 
-include_directories( tests.out PRIVATE unity )
+include_directories( tests.out PRIVATE Unity )
+include_directories( tests.out PRIVATE Unity/src )
 include_directories( tests.out PRIVATE src )
 
 add_executable( tests.out
@@ -23,9 +24,9 @@ add_executable( tests.out
                 tests/state_tests.c
                 tests/state_tests.h
                 tests/tests.c
-                unity/unity.c
-                unity/unity.h
-                unity/unity_internals.h ) 
+                Unity/src/unity.c
+                Unity/src/unity.h
+                Unity/src/unity_internals.h ) 
 
 
 target_compile_options( tests.out

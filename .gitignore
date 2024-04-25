@@ -2,6 +2,8 @@
 examples/state_example
 experiments/fsm_xmacro
 unity/
+Unity/
+Unity/src/
 unit_tests/tests
 xmacro/fsm_xmacro
 
