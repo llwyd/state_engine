@@ -1,6 +1,6 @@
-#ifndef STACK_TESTS_H
-#define STACK_TESTS_H
+#ifndef HEAP_TESTS_H
+#define HEAP_TESTS_H
 
-extern void StackTestSuite(void);
+extern void HeapTestSuite(void);
 
-#endif /* STACK_TESTS_H */
+#endif /* HEAP_TESTS_H */
