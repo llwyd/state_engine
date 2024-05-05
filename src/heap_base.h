@@ -16,4 +16,7 @@ heap_t;
 extern void Heap_Init(heap_t * heap);
 extern void Heap_Push(heap_t * heap, uint32_t data);
 extern uint32_t Heap_Pop(heap_t * heap);
+extern uint32_t Heap_Peek(heap_t * heap);
+extern bool Heap_IsEmpty(heap_t * heap);
+extern bool Heap_IsFull(heap_t * heap);
 
