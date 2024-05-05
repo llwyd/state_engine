@@ -369,6 +369,46 @@ static void test_Heap_Scenario0(void)
     }
 }
 
+static void test_Heap_Scenario1(void)
+{
+    heap_t heap;
+    Heap_Init(&heap);
+
+    uint32_t data[8] = {5,0,5,5,3,3,7,2};
+    uint32_t sorted[8] = {0,2,3,3,5,5,5,7};
+    CreateHeap(&heap, data, 8U);
+    
+    TEST_ASSERT_EQUAL( 8U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+    TEST_ASSERT_EQUAL( 0U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 2U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 3U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 3U, heap.heap[3] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[4] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[5] );
+    TEST_ASSERT_EQUAL( 7U, heap.heap[6] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[7] );
+
+    uint32_t out = Heap_Pop(&heap);
+    
+    TEST_ASSERT_EQUAL( 0U, out );
+    TEST_ASSERT_EQUAL( 2U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 3U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 3U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[3] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[4] );
+    TEST_ASSERT_EQUAL( 5U, heap.heap[5] );
+    TEST_ASSERT_EQUAL( 7U, heap.heap[6] );
+    
+    TEST_ASSERT_EQUAL( 7U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+
+    for( uint32_t idx = 1U; idx < 7U; idx++)
+    {
+        TEST_ASSERT_EQUAL(sorted[idx], Heap_Pop(&heap));
+    }
+}
+
 extern void HeapTestSuite(void)
 {
     RUN_TEST(test_Heap_Init);
@@ -390,4 +430,5 @@ extern void HeapTestSuite(void)
     RUN_TEST(test_Heap_Pop3GG);
     RUN_TEST(test_Heap_Pop3GL);
     RUN_TEST(test_Heap_Scenario0);
+    RUN_TEST(test_Heap_Scenario1);
 }
