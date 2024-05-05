@@ -22,8 +22,6 @@ static void Dequeue( fifo_base_t * const fifo );
 static void Flush( fifo_base_t * const fifo );
 static void Peek( fifo_base_t * const fifo );
 
-event_t e = EVENT(None);
-
 void Init( test_fifo_t * fifo )
 {
     static const fifo_vfunc_t vfunc =

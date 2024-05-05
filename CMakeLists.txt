@@ -13,6 +13,8 @@ include_directories( tests.out PRIVATE src )
 
 add_executable( tests.out
                 src/assert_bp.h
+                src/heap_base.h
+                src/heap_base.c
                 src/fifo_base.h
                 src/fifo_base.c
                 src/state.c
@@ -23,6 +25,8 @@ add_executable( tests.out
                 tests/fifo_tests.h
                 tests/state_tests.c
                 tests/state_tests.h
+                tests/heap_tests.h
+                tests/heap_tests.c
                 tests/tests.c
                 Unity/src/unity.c
                 Unity/src/unity.h
