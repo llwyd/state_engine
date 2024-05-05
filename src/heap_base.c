@@ -16,7 +16,7 @@ extern void Heap_Init(heap_t * heap)
 {
     heap->fill = 0;
     heap->max = HEAP_LEN;
-    memset(heap->heap, 0x00, sizeof(uint32_t) * HEAP_LEN);
+    memset(heap->heap, 0xFF, sizeof(uint32_t) * HEAP_LEN);
 }
 
 extern bool Heap_IsFull(heap_t * heap)
@@ -76,6 +76,8 @@ extern uint32_t Heap_Pop(heap_t * heap)
 
     /* Place bottom of heap at top */
     heap->heap[0] = heap->heap[heap->fill - 1U];
+    heap->heap[heap->fill - 1U] = UINT32_MAX;
+    heap->fill--;
 
     /* Sink through the heap */
     uint32_t idx = 0U;
