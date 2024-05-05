@@ -118,6 +118,78 @@ static void test_Heap_Push3LL(void)
     TEST_ASSERT_EQUAL( 9U, heap.heap[2] );
 }
 
+static void test_Heap_Push4LLLL(void)
+{
+    heap_t heap;
+    Heap_Init(&heap);
+
+    Heap_Push(&heap, 10U);
+    Heap_Push(&heap, 9U);
+    Heap_Push(&heap, 8U);
+    Heap_Push(&heap, 7U);
+    
+    TEST_ASSERT_EQUAL( 4U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+    TEST_ASSERT_EQUAL( 7U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 8U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 9U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 10U, heap.heap[3] );
+}
+
+static void test_Heap_Push4LLLG(void)
+{
+    heap_t heap;
+    Heap_Init(&heap);
+
+    Heap_Push(&heap, 10U);
+    Heap_Push(&heap, 9U);
+    Heap_Push(&heap, 8U);
+    Heap_Push(&heap, 9U);
+    
+    TEST_ASSERT_EQUAL( 4U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+    TEST_ASSERT_EQUAL( 8U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 9U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 9U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 10U, heap.heap[3] );
+}
+
+static void test_Heap_Push4LLGL(void)
+{
+    heap_t heap;
+    Heap_Init(&heap);
+
+    Heap_Push(&heap, 10U);
+    Heap_Push(&heap, 9U);
+    Heap_Push(&heap, 11U);
+    Heap_Push(&heap, 8U);
+    
+    TEST_ASSERT_EQUAL( 4U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+    TEST_ASSERT_EQUAL( 8U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 9U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 11U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 10U, heap.heap[3] );
+}
+
+static void test_Heap_Push4LLGG(void)
+{
+    heap_t heap;
+    Heap_Init(&heap);
+
+    Heap_Push(&heap, 10U);
+    Heap_Push(&heap, 9U);
+    Heap_Push(&heap, 11U);
+    Heap_Push(&heap, 12U);
+    
+    TEST_ASSERT_EQUAL( 4U, heap.fill );
+    TEST_ASSERT_EQUAL( HEAP_LEN, heap.max );
+    TEST_ASSERT_EQUAL( 9U, heap.heap[0] );
+    TEST_ASSERT_EQUAL( 10U, heap.heap[1] );
+    TEST_ASSERT_EQUAL( 11U, heap.heap[2] );
+    TEST_ASSERT_EQUAL( 12U, heap.heap[3] );
+}
+
 extern void HeapTestSuite(void)
 {
     RUN_TEST(test_Heap_Init);
@@ -128,4 +200,8 @@ extern void HeapTestSuite(void)
     RUN_TEST(test_Heap_Push3GG);
     RUN_TEST(test_Heap_Push3LG);
     RUN_TEST(test_Heap_Push3LL);
+    RUN_TEST(test_Heap_Push4LLLL);
+    RUN_TEST(test_Heap_Push4LLLG);
+    RUN_TEST(test_Heap_Push4LLGL);
+    RUN_TEST(test_Heap_Push4LLGG);
 }
