@@ -119,15 +119,29 @@ void test_EMITTER_Init(void)
     TEST_ASSERT_EQUAL( 0U, fifo.base.fill );
     TEST_ASSERT_EQUAL( 0U, fifo.base.read_index );
     TEST_ASSERT_EQUAL( 0U, fifo.base.write_index );
-    
-    TEST_ASSERT_EQUAL( FIFO_LEN, emitter.base.fifo->max );
-    TEST_ASSERT_EQUAL( 0U, emitter.base.fifo->fill );
-    TEST_ASSERT_EQUAL( 0U, emitter.base.fifo->read_index );
-    TEST_ASSERT_EQUAL( 0U, emitter.base.fifo->write_index );
+    TEST_ASSERT_EQUAL( 0U, fifo.in );
+    TEST_ASSERT_EQUAL( 0U, fifo.out );
+
+    emitter_fifo_t * fifo_ptr = (emitter_fifo_t *)emitter.base.fifo;
+
+    TEST_ASSERT_EQUAL( FIFO_LEN, fifo_ptr->base.max );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->base.fill );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->base.read_index );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->base.write_index );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->in );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->out );
 
     TEST_ASSERT_EQUAL(MAGIC_NUMBER_0, emitter.magic_0);
     TEST_ASSERT_EQUAL(MAGIC_NUMBER_1, emitter.magic_1);
     TEST_ASSERT_EQUAL(MAGIC_NUMBER_2, emitter.magic_2);
+
+    TEST_ASSERT_EQUAL(Emit, emitter.base.vfunc->emit);
+    TEST_ASSERT_EQUAL(Create, emitter.base.vfunc->create);
+    TEST_ASSERT_EQUAL(Destroy, emitter.base.vfunc->destroy);
+    
+    TEST_ASSERT_EQUAL(Flush, emitter.base.fifo->vfunc->flush);
+    TEST_ASSERT_EQUAL(Enqueue, emitter.base.fifo->vfunc->enq);
+    TEST_ASSERT_EQUAL(Dequeue, emitter.base.fifo->vfunc->deq);
 }
 
 extern void EMITTERTestSuite(void)
