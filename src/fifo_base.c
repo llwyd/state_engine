@@ -7,6 +7,7 @@ static void virtual_Peek( fifo_base_t * fifo );
 
 extern void FIFO_Init( fifo_base_t * fifo, uint32_t size )
 {
+    assert(fifo != NULL);
     assert(size > 0U);
     assert((size & (size - 1U )) == 0U);
     

@@ -15,13 +15,6 @@
 
 typedef struct
 {
-    state_t * state;
-    event_t event;
-}
-state_event_t;
-
-typedef struct
-{
     fifo_base_t base;
     state_event_t queue[FIFO_LEN];
     state_event_t in;

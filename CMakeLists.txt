@@ -23,6 +23,8 @@ add_executable( tests.out
                 src/state_history.h
                 src/events.h
                 src/events.c
+                src/emitter_base.h
+                src/emitter_base.c
                 tests/fifo_tests.c
                 tests/fifo_tests.h
                 tests/state_tests.c
