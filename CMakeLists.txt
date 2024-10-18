@@ -21,8 +21,6 @@ add_executable( tests.out
                 src/state.h
                 src/state_history.c
                 src/state_history.h
-                src/events.h
-                src/events.c
                 src/emitter_base.h
                 src/emitter_base.c
                 tests/fifo_tests.c
@@ -32,8 +30,6 @@ add_executable( tests.out
                 tests/heap_tests.h
                 tests/heap_tests.c
                 tests/tests.c
-                tests/multi_state_tests.h
-                tests/multi_state_tests.c
                 tests/emitter_tests.h
                 tests/emitter_tests.c
                 Unity/src/unity.c
