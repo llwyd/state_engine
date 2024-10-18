@@ -16,6 +16,7 @@ extern void Emitter_Init(emitter_base_t * const base, fifo_base_t * fifo)
         .destroy = Destroy,
     };
     base->vfunc = &vfunc;
+    base->fifo = fifo;
 }
 
 static bool Emit(emitter_base_t * const base, event_t event)

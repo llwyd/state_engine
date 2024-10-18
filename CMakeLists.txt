@@ -34,6 +34,8 @@ add_executable( tests.out
                 tests/tests.c
                 tests/multi_state_tests.h
                 tests/multi_state_tests.c
+                tests/emitter_tests.h
+                tests/emitter_tests.c
                 Unity/src/unity.c
                 Unity/src/unity.h
                 Unity/src/unity_internals.h ) 
