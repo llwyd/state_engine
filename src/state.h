@@ -89,6 +89,13 @@ struct state_t
     state_func_t state;
 };
 
+typedef struct
+{
+    state_t * state;
+    event_t event;
+}
+state_event_t;
+
 extern void STATEMACHINE_Init( state_t * state, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
 
 /* Event Dispatchers */

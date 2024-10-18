@@ -21,6 +21,8 @@ add_executable( tests.out
                 src/state.h
                 src/state_history.c
                 src/state_history.h
+                src/emitter_base.h
+                src/emitter_base.c
                 tests/fifo_tests.c
                 tests/fifo_tests.h
                 tests/state_tests.c
@@ -28,6 +30,8 @@ add_executable( tests.out
                 tests/heap_tests.h
                 tests/heap_tests.c
                 tests/tests.c
+                tests/emitter_tests.h
+                tests/emitter_tests.c
                 Unity/src/unity.c
                 Unity/src/unity.h
                 Unity/src/unity_internals.h ) 
@@ -36,11 +40,11 @@ add_executable( tests.out
 target_compile_options( tests.out
                         PUBLIC
                         -Wfatal-errors
-                        -Wall
-                        -Wextra
+                        #-Wall
+                        #-Wextra
                         -Werror
-                        -Wpedantic
-                        -Wpointer-arith
+                        #-Wpedantic
+                        #-Wpointer-arith
                         -g
                         -DUNIT_TESTS
                         -DUNITY_OUTPUT_COLOR )

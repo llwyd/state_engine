@@ -6,9 +6,6 @@
 
 #define FIFO_LEN (32U)
 
-#define SIGNALS(SIG)
-GENERATE_SIGNALS(SIGNALS);
-
 typedef struct
 {
     fifo_base_t base;
