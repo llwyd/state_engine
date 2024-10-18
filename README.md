@@ -6,12 +6,14 @@ Personalised boilerplate code so that I don't have to rewrite it for every proje
 
 ## Summary
 
-- state.c
-    - This is my personalised take on the UML state machine design pattern popularised by Miro Samek's writings about state machines (which are fantastic).
-- fifo_base.c
+- `emitter_base.c`
+    - base class for an event emitter which can be used to enqueue events and configure repeated events via a user-defined timer.
+- `fifo_base.c`
     -  FIFO 'base class' with functionality for enqueuing, dequeuing, peeking etc for any particular type.
-- heap_base.c
-    -  Support for min-heaps (mainly used for timer functions)
+- `heap_base.c`
+    -  Support for min-heaps
+- `state.c`
+    - This is my personalised take on the UML state machine design pattern popularised by Miro Samek's writings about state machines (which are fantastic).
 
 # Further reading / references / inspiration
 * [1] [Introduction to Hierarchical State Machines](https://barrgroup.com/embedded-systems/how-to/introduction-hierarchical-state-machines)
