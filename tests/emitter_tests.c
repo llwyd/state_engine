@@ -10,9 +10,9 @@
 #define MAGIC_NUMBER_2 (0x5A5A5A5A)
 
 #define SIGNALS(SIG) \
-    SIG(TestSignal0) \
-    SIG(TestSignal1) \
-    SIG(TestSignal2) \
+    SIG(TestEvent0) \
+    SIG(TestEvent1) \
+    SIG(TestEvent2) \
 
 #define FIFO_LEN (8U)
 
@@ -105,7 +105,14 @@ static void Create(emitter_base_t * const base, event_t event, uint32_t period)
 static bool Emit(emitter_base_t * const base, event_t event)
 {
     assert(base!=NULL);
-    (void)event;
+    bool success = false;
+    if(!FIFO_IsFull(base->fifo))
+    {
+        emitter_fifo_t * fifo = (emitter_fifo_t *)base->fifo;
+        FIFO_Enqueue(fifo, event);
+        success = true;
+    }
+    return success;
 }
 
 void test_EMITTER_Init(void)
@@ -144,7 +151,37 @@ void test_EMITTER_Init(void)
     TEST_ASSERT_EQUAL(Dequeue, emitter.base.fifo->vfunc->deq);
 }
 
+void test_EMITTER_Emit(void)
+{
+    emitter_fifo_t fifo;
+    emitter_t emitter;
+
+    Init(&emitter, &fifo);
+
+    Emitter_Emit(&emitter.base, EVENT(TestEvent0));
+    
+    emitter_fifo_t * fifo_ptr = (emitter_fifo_t *)emitter.base.fifo;
+
+    TEST_ASSERT_EQUAL( FIFO_LEN, fifo_ptr->base.max );
+    TEST_ASSERT_EQUAL( 1U, fifo_ptr->base.fill );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->base.read_index );
+    TEST_ASSERT_EQUAL( 1U, fifo_ptr->base.write_index );
+    TEST_ASSERT_EQUAL( EVENT(TestEvent0), fifo_ptr->in );
+    TEST_ASSERT_EQUAL( 0U, fifo_ptr->out );
+    
+    TEST_ASSERT_EQUAL(MAGIC_NUMBER_0, emitter.magic_0);
+    TEST_ASSERT_EQUAL(MAGIC_NUMBER_1, emitter.magic_1);
+    TEST_ASSERT_EQUAL(MAGIC_NUMBER_2, emitter.magic_2);
+
+    event_t event = FIFO_Dequeue( &fifo );
+    TEST_ASSERT_EQUAL( event, EVENT( TestEvent0 ) );
+    TEST_ASSERT_EQUAL( fifo.base.read_index, 1U );
+    TEST_ASSERT_EQUAL( fifo.base.write_index, 1U );
+    TEST_ASSERT_EQUAL( fifo.base.fill, 0U );
+}
+
 extern void EMITTERTestSuite(void)
 {
     RUN_TEST(test_EMITTER_Init);
+    RUN_TEST(test_EMITTER_Emit);
 }
