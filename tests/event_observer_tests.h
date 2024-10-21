@@ -1,0 +1,6 @@
+#ifndef EVENTOBSERVER_TESTS_H
+#define EVENTOBSERVER_TESTS_H
+
+extern void EVENTOBSERVERTestSuite(void);
+
+#endif /* EVENTOBSERVER_TESTS_H */
