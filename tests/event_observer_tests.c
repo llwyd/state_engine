@@ -78,9 +78,48 @@ void test_EVENTOBS_Subscribe(void)
     TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[3]);
 }
 
+void test_EVENTOBS_GetSubs(void)
+{
+    GENERATE_EVENT_OBSERVERS( observer, SIGNALS );
+    
+    state_t state;
+    state_t state0;
+    
+    STATEMACHINE_Init( &state, STATE( A ) );
+    STATEMACHINE_Init( &state0, STATE( A ) );
+
+    TEST_ASSERT_NOT_EQUAL(&state, &state0);
+
+    EventObserver_Init(observer, EVENT(EventCount));
+    EventObserver_Subscribe(observer, EVENT(TestEvent1), &state);
+
+    uint32_t idx = (uint32_t)EVENT(TestEvent1);
+    TEST_ASSERT_EQUAL(1U, observer[idx].subscriptions);
+    TEST_ASSERT_EQUAL(&state, observer[idx].subscriber[0]);
+    TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[1]);
+    TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[2]);
+    TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[3]);
+    
+    EventObserver_Subscribe(observer, EVENT(TestEvent1), &state0);
+    TEST_ASSERT_EQUAL(2U, observer[idx].subscriptions);
+    TEST_ASSERT_EQUAL(&state, observer[idx].subscriber[0]);
+    TEST_ASSERT_EQUAL(&state0, observer[idx].subscriber[1]);
+    TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[2]);
+    TEST_ASSERT_EQUAL(NULL, observer[idx].subscriber[3]);
+
+    const event_observer_t * const test_event = EventObserver_GetSubs(observer, EVENT(TestEvent1));
+    
+    TEST_ASSERT_EQUAL(2U, test_event->subscriptions);
+    TEST_ASSERT_EQUAL(&state, test_event->subscriber[0]);
+    TEST_ASSERT_EQUAL(&state0, test_event->subscriber[1]);
+    TEST_ASSERT_EQUAL(NULL, test_event->subscriber[2]);
+    TEST_ASSERT_EQUAL(NULL, test_event->subscriber[3]);
+}
+
 extern void EVENTOBSERVERTestSuite(void)
 {
     RUN_TEST(test_EVENTOBS_Init);
     RUN_TEST(test_EVENTOBS_Subscribe);
+    RUN_TEST(test_EVENTOBS_GetSubs);
 }
 

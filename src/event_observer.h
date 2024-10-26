@@ -22,5 +22,6 @@ event_observer_t;
 
 extern void EventObserver_Init(event_observer_t * const obs, uint32_t num_events);
 extern void EventObserver_Subscribe(event_observer_t * const obs, event_t event, state_t * subscriber);
+extern const event_observer_t * const EventObserver_GetSubs(event_observer_t * const obs, event_t e);
 
 #endif /* EVENT_OBS_H */

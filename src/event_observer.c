@@ -36,3 +36,13 @@ extern void EventObserver_Subscribe(event_observer_t * const obs, event_t event,
     observer->subscriptions++;
 }
 
+extern const event_observer_t * const EventObserver_GetSubs(event_observer_t * const obs, event_t e)
+{
+    assert( obs != NULL );
+    
+    const uint32_t idx = (uint32_t)e;
+    const event_observer_t * const observer = &obs[idx];
+
+    return observer;
+}
+
