@@ -8,6 +8,8 @@ Personalised boilerplate code so that I don't have to rewrite it for every proje
 
 - `emitter_base.c`
     - base class for an event emitter which can be used to enqueue events and configure repeated events via a user-defined timer.
+- `event_observer.c`
+    - Module for allowing state machines to subscribe to events and get notified when they are emitted.
 - `fifo_base.c`
     -  FIFO 'base class' with functionality for enqueuing, dequeuing, peeking etc for any particular type.
 - `heap_base.c`
@@ -22,3 +24,4 @@ Personalised boilerplate code so that I don't have to rewrite it for every proje
 * [4] [Object-Oriented Programming in C](https://www.state-machine.com/doc/AN_Simple_OOP_in_C.pdf)
 * [5] [Algorithms 4th Edition](https://algs4.cs.princeton.edu/home/)
 * [6] [Heap (Data Structure)](https://en.wikipedia.org/wiki/Heap_(data_structure))
+* [7] [Observer](https://refactoring.guru/design-patterns/observer)
