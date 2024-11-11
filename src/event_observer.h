@@ -2,6 +2,8 @@
 #define EVENT_OBS_H_
 
 #include "state.h"
+#include <assert.h>
+#include <stdio.h>
 
 #define MAX_SUBSCRIPTIONS (4U)
 
