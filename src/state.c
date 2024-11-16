@@ -16,8 +16,8 @@ _Static_assert( MAX_NESTED_STATES > 0U, "Max number of nested states must be gre
 
 _Static_assert( STATES_BUFFER_LEN > 0U, "Max number of nested states must be greater than 0" );
 
-#define SIGNALS(SIG)
-GENERATE_SIGNALS(SIGNALS);
+#define EVENTS(EVNT)
+GENERATE_EVENTS(EVENTS);
 
 typedef struct
 {
@@ -93,7 +93,7 @@ extern void STATEMACHINE_Init( state_t * state,  state_ret_t (*initial_state) ( 
 }
 
 /* A 'simple' dispatch for a flat state machine */
-extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s )
+static void Dispatch( state_t * state, event_t s )
 {
     state_func_t previous = state->state;
 
@@ -368,7 +368,7 @@ extern void STATEMACHINE_Dispatch( state_t * state, event_t s )
     
         /* Dogfooding to handle transition */
         transition.state.state = STATE( TransitionStart );
-        STATEMACHINE_FlatDispatch( &(transition.state), EVENT( Enter ) );
+        Dispatch( &(transition.state), EVENT( Enter ) );
 
         /* Reassign original state */    
         state->state = transition.target;

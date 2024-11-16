@@ -13,10 +13,10 @@
 #include <stdbool.h>
 
 /* Core State Machine Defines and helper macros */
-#define DEFAULT_SIGNALS(SIGNAL) \
-    SIGNAL( None ) \
-    SIGNAL( Enter ) \
-    SIGNAL( Exit ) \
+#define DEFAULT_EVENTS(EVNT) \
+    EVNT( None ) \
+    EVNT( Enter ) \
+    EVNT( Exit ) \
 
 #define STATE_RETURN_CODES \
     RETURN_CODE( None ) \
@@ -28,32 +28,32 @@
 #define MAX_NESTED_STATES ( 3U )
 #endif /* MAX_NESTED_STATES */
 
-#define SIGNAL_ENUM(x) event_##x,
-#define SIGNAL_ENUM_(x) event_##x
+#define EVENT_ENUM(x) event_##x,
+#define EVENT_ENUM_(x) event_##x
 
 #define RETURN(x) return_##x
-#define EVENT(x) SIGNAL_ENUM_(x)
+#define EVENT(x) EVENT_ENUM_(x)
 
 #define STATE(x) State_##x
 #define DEFINE_STATE(x) static state_ret_t STATE(x) ( state_t * this, event_t s )
 
-#define SIGNAL_STR_(x) #x
-#define SIGNAL_LOOKUP_(x) [SIGNAL_ENUM_(x)] = SIGNAL_STR_(x),
+#define EVENT_STR_(x) #x
+#define EVENT_LOOKUP_(x) [EVENT_ENUM_(x)] = EVENT_STR_(x),
 
-#define GENERATE_SIGNALS( SIG ) \
-    enum Signal \
+#define GENERATE_EVENTS( EVNT ) \
+    enum Event \
     { \
-        DEFAULT_SIGNALS(SIGNAL_ENUM) \
-        SIG( SIGNAL_ENUM ) \
-        SIGNAL_ENUM( EventCount ) \
+        DEFAULT_EVENTS(EVENT_ENUM) \
+        EVNT( EVENT_ENUM ) \
+        EVENT_ENUM( EventCount ) \
     }
 
-#define GENERATE_SIGNAL_STRINGS( SIG ) \
+#define GENERATE_EVENT_STRINGS( EVNT ) \
     static const char *event_str[] = \
     { \
-        DEFAULT_SIGNALS( SIGNAL_LOOKUP_ ) \
-        SIG( SIGNAL_LOOKUP_ ) \
-        SIGNAL_LOOKUP_( EventCount ) \
+        DEFAULT_EVENTS( EVENT_LOOKUP_ ) \
+        EVNT( EVENT_LOOKUP_ ) \
+        EVENT_LOOKUP_( EventCount ) \
     } \
 
 #define STATE_DEBUG( x ) \
@@ -67,7 +67,6 @@
 #define HANDLED(X) RETURN ( Handled )
 #define NO_PARENT(X) ((X)->state = NULL,RETURN( Unhandled ))
 
-/* Signal to send events to a given state */
 typedef uint32_t event_t;
 
 typedef enum
@@ -97,10 +96,7 @@ typedef struct
 state_event_t;
 
 extern void STATEMACHINE_Init( state_t * state, state_ret_t (*initial_state) ( state_t * this, event_t s ) );
-
-/* Event Dispatchers */
 extern void STATEMACHINE_Dispatch( state_t * state, event_t s );
-extern void STATEMACHINE_FlatDispatch( state_t * state, event_t s );
 
 #ifdef UNIT_TESTS
 #include "fifo_base.h"

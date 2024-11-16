@@ -9,14 +9,14 @@
 #define MAGIC_NUMBER_1 (0xA5A5A5A5)
 #define MAGIC_NUMBER_2 (0x5A5A5A5A)
 
-#define SIGNALS(SIG) \
-    SIG(TestEvent0) \
-    SIG(TestEvent1) \
-    SIG(TestEvent2) \
+#define EVENTS(EVNT) \
+    EVNT(TestEvent0) \
+    EVNT(TestEvent1) \
+    EVNT(TestEvent2) \
 
 #define FIFO_LEN (8U)
 
-GENERATE_SIGNALS( SIGNALS );
+GENERATE_EVENTS( EVENTS );
 
 typedef struct
 {

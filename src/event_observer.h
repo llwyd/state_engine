@@ -14,7 +14,7 @@ typedef struct
 }
 event_observer_t;
 
-#define EVENT_OBS_ARRAY(x) [SIGNAL_ENUM_(x)] = {.subscriber = {NULL}, .subscriptions = 0U},
+#define EVENT_OBS_ARRAY(x) [EVENT_ENUM_(x)] = {.subscriber = {NULL}, .subscriptions = 0U},
 
 #define GENERATE_EVENT_OBSERVERS(NAME, EV) \
     event_observer_t NAME [] = \

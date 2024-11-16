@@ -3,18 +3,18 @@
 #include "unity.h"
 #include <string.h>
 
-#define SIGNALS(SIG) \
-    SIG(Tick) \
-    SIG( TransitionToA ) \
-    SIG( TransitionToB ) \
-    SIG( TransitionToA0 ) \
-    SIG( TransitionToA1 ) \
-    SIG( TransitionToB0 ) \
-    SIG( TransitionToB1 ) \
-    SIG( TransitionToA01 )  
+#define EVENTS(EVNT) \
+    EVNT(Tick) \
+    EVNT( TransitionToA ) \
+    EVNT( TransitionToB ) \
+    EVNT( TransitionToA0 ) \
+    EVNT( TransitionToA1 ) \
+    EVNT( TransitionToB0 ) \
+    EVNT( TransitionToB1 ) \
+    EVNT( TransitionToA01 )  
 
-GENERATE_SIGNALS( SIGNALS );
-GENERATE_SIGNAL_STRINGS( SIGNALS );
+GENERATE_EVENTS( EVENTS );
+GENERATE_EVENT_STRINGS( EVENTS );
 
 DEFINE_STATE(A);
 DEFINE_STATE(B);

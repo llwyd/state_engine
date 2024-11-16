@@ -3,12 +3,12 @@
 #include "unity.h"
 #include <string.h>
 
-#define SIGNALS(SIG) \
-    SIG(TestEvent0) \
-    SIG(TestEvent1) \
-    SIG(TestEvent2) \
+#define EVENTS(EVNT) \
+    EVNT(TestEvent0) \
+    EVNT(TestEvent1) \
+    EVNT(TestEvent2) \
 
-GENERATE_SIGNALS( SIGNALS );
+GENERATE_EVENTS( EVENTS );
 
 DEFINE_STATE(A);
 
@@ -35,7 +35,7 @@ static state_ret_t State_A( state_t * this, event_t s)
 
 void test_EVENTOBS_Init(void)
 {
-    GENERATE_EVENT_OBSERVERS( observer, SIGNALS );
+    GENERATE_EVENT_OBSERVERS( observer, EVENTS );
 
     EventObserver_Init(observer, EVENT(EventCount)); 
     for(uint32_t idx = 0; idx < EVENT(EventCount); idx++)
@@ -50,7 +50,7 @@ void test_EVENTOBS_Init(void)
 
 void test_EVENTOBS_Subscribe(void)
 {
-    GENERATE_EVENT_OBSERVERS( observer, SIGNALS );
+    GENERATE_EVENT_OBSERVERS( observer, EVENTS );
     
     state_t state;
     state_t state0;
@@ -80,7 +80,7 @@ void test_EVENTOBS_Subscribe(void)
 
 void test_EVENTOBS_GetSubs(void)
 {
-    GENERATE_EVENT_OBSERVERS( observer, SIGNALS );
+    GENERATE_EVENT_OBSERVERS( observer, EVENTS );
     
     state_t state;
     state_t state0;
